@@ -1,0 +1,1737 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MBOKA TECH — Visioconférence intelligente</title>
+
+<!-- Bootstrap 5 -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+
+<style>
+/* ===========================================================
+   MBOKA TECH — Style professionnel type Microsoft Teams
+   =========================================================== */
+:root {
+  --primary: #0d6efd;
+  --primary-dark: #0a58ca;
+  --primary-light: #e7f1ff;
+  --teams-purple: #4f52b2;
+  --bg-app: #f3f2f1;
+  --bg-card: #ffffff;
+  --border-soft: #e1dfdd;
+  --text-primary: #201f1e;
+  --text-muted: #605e5c;
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
+  --radius: 8px;
+  --radius-lg: 12px;
+}
+* { box-sizing: border-box; }
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: -apple-system, "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif;
+  background: var(--bg-app);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+.page { display: none; min-height: 100vh; }
+.page.active { display: block; }
+
+/* AUTH */
+#auth-page {
+  background: linear-gradient(135deg, #0d6efd 0%, #4f52b2 100%);
+  min-height: 100vh;
+}
+.auth-wrapper {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 1.5rem;
+}
+.auth-card { width: 100%; max-width: 440px; border-radius: var(--radius-lg) !important; }
+.brand-logo {
+  width: 64px; height: 64px; border-radius: 16px;
+  background: linear-gradient(135deg, var(--primary), var(--teams-purple));
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 1.75rem;
+  box-shadow: 0 8px 24px rgba(13, 110, 253, 0.35);
+}
+.brand-logo-sm {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: linear-gradient(135deg, var(--primary), var(--teams-purple));
+  display: inline-flex; align-items: center; justify-content: center;
+  color: white; font-size: 1rem;
+}
+#auth-page .nav-pills .nav-link {
+  color: var(--text-muted); font-weight: 600; border-radius: var(--radius);
+}
+#auth-page .nav-pills .nav-link.active { background: var(--primary-light); color: var(--primary); }
+.form-control:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+/* HOME */
+.navbar { box-shadow: var(--shadow-sm); z-index: 1030; }
+.avatar-circle {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--teams-purple));
+  color: white; display: flex; align-items: center; justify-content: center;
+  font-weight: 600; font-size: 0.9rem;
+}
+.hero-banner {
+  background: linear-gradient(135deg, #0d6efd 0%, #4f52b2 100%);
+  position: relative; overflow: hidden;
+}
+.hero-banner::before {
+  content: ""; position: absolute; top: -50%; right: -10%;
+  width: 400px; height: 400px;
+  background: rgba(255,255,255,0.08); border-radius: 50%; pointer-events: none;
+}
+.hero-banner::after {
+  content: ""; position: absolute; bottom: -30%; right: 20%;
+  width: 200px; height: 200px;
+  background: rgba(255,255,255,0.05); border-radius: 50%; pointer-events: none;
+}
+.meeting-row {
+  display: flex; align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-soft);
+  transition: background 0.15s; cursor: pointer;
+}
+.meeting-row:hover { background: var(--primary-light); }
+.meeting-row:last-child { border-bottom: none; }
+.meeting-row .meeting-icon {
+  width: 44px; height: 44px; border-radius: var(--radius);
+  background: var(--primary-light); color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.25rem; margin-right: 1rem; flex-shrink: 0;
+}
+.meeting-row .meeting-info { flex: 1; min-width: 0; }
+.meeting-row .meeting-title {
+  font-weight: 600; margin-bottom: 0.15rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.meeting-row .meeting-meta { font-size: 0.8rem; color: var(--text-muted); }
+
+/* MEETING */
+.meeting-layout {
+  display: flex; flex-direction: column;
+  height: 100vh; background: #1f1f1f; color: #fff;
+}
+.meeting-header {
+  background: #2d2d2d; padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid #3a3a3a;
+  display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+}
+.meeting-header .text-muted { color: #b0b0b0 !important; }
+.meeting-header .btn-light { background: #3a3a3a; color: #fff; border: none; }
+.meeting-header .btn-light:hover { background: #4a4a4a; color: #fff; }
+.meeting-header .badge.bg-light { background: #3a3a3a !important; color: #fff !important; border: none !important; }
+.meeting-body { flex: 1; display: flex; min-height: 0; }
+.video-area {
+  flex: 1; display: flex; flex-direction: column;
+  background: #1f1f1f; min-width: 0;
+}
+.videos-grid {
+  flex: 1; display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 0.75rem; padding: 1rem; overflow: auto; align-content: start;
+}
+
+/* MODE PRÉSENTATION (comme Teams/Google Meet) */
+.videos-grid.presenting {
+  display: flex;
+  flex-direction: row;
+  gap: 0.75rem;
+  padding: 1rem;
+  align-items: stretch;
+}
+.videos-grid.presenting .video-tile {
+  flex: 0 0 180px;
+  aspect-ratio: 16 / 9;
+  width: 180px;
+}
+.videos-grid.presenting .video-tile.presenter {
+  flex: 1 1 auto;
+  width: auto;
+  height: 100%;
+  aspect-ratio: auto;
+  order: -1;
+  border: 3px solid var(--primary);
+  box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.25);
+}
+.videos-grid.presenting .video-tile.presenter video {
+  object-fit: contain;
+  background: #000;
+}
+.video-tile.presenter::after {
+  content: "📺 Présentation";
+  position: absolute;
+  top: 0.5rem; left: 0.5rem;
+  background: var(--primary); color: white;
+  padding: 0.3rem 0.75rem; border-radius: 6px;
+  font-size: 0.75rem; font-weight: 600;
+  z-index: 2;
+}
+/* En mobile, présentateur en haut et vignettes en dessous */
+@media (max-width: 768px) {
+  .videos-grid.presenting {
+    flex-direction: column;
+  }
+  .videos-grid.presenting .video-tile {
+    flex: 0 0 100px;
+    width: 100%;
+    height: 100px;
+    aspect-ratio: auto;
+  }
+  .videos-grid.presenting .video-tile.presenter {
+    flex: 1 1 auto;
+    width: 100%;
+    height: auto;
+    min-height: 50%;
+  }
+}
+
+.video-tile {
+  position: relative; background: #000;
+  border-radius: var(--radius-lg); overflow: hidden;
+  aspect-ratio: 16 / 9;
+  box-shadow: var(--shadow-md);
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+.video-tile.speaking { border-color: var(--primary); }
+.video-tile video { width: 100%; height: 100%; object-fit: cover; background: #000; }
+.video-tile .video-label {
+  position: absolute; bottom: 0.5rem; left: 0.5rem; right: 0.5rem;
+  background: rgba(0,0,0,0.65); color: white;
+  padding: 0.4rem 0.75rem; border-radius: 6px;
+  font-size: 0.85rem; display: flex; align-items: center; gap: 0.4rem;
+  backdrop-filter: blur(4px);
+}
+.video-tile .video-label .bi-mic-mute-fill { color: #ff6b6b; }
+.meeting-controls {
+  background: #2d2d2d; padding: 0.85rem 1rem;
+  display: flex; justify-content: center; gap: 0.5rem;
+  flex-wrap: wrap; border-top: 1px solid #3a3a3a;
+}
+.ctrl-btn {
+  width: 48px; height: 48px; border-radius: 50%;
+  border: none; background: #3a3a3a; color: white;
+  font-size: 1.15rem;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.15s;
+}
+.ctrl-btn:hover { background: #4a4a4a; transform: translateY(-1px); }
+.ctrl-btn.off { background: #c0392b; }
+.ctrl-btn.off:hover { background: #d0473a; }
+.ctrl-btn.active { background: var(--primary); }
+.ctrl-btn.active:hover { background: var(--primary-dark); }
+.ctrl-btn.ctrl-leave { background: #c0392b; }
+.ctrl-btn.ctrl-leave:hover { background: #d0473a; }
+.ctrl-btn.recording { background: #c0392b; animation: pulse-rec 1.4s infinite; }
+@keyframes pulse-rec {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(192,57,43,0.7); }
+  50% { box-shadow: 0 0 0 10px rgba(192,57,43,0); }
+}
+.side-panel {
+  width: 360px; background: var(--bg-card); color: var(--text-primary);
+  display: flex; flex-direction: column;
+  border-left: 1px solid var(--border-soft); flex-shrink: 0;
+}
+.side-panel.collapsed { display: none; }
+.side-tabs {
+  border-bottom: 1px solid var(--border-soft);
+  margin: 0; padding: 0; background: #fafafa; flex-shrink: 0;
+}
+.side-tabs .nav-link {
+  border: none; border-radius: 0;
+  color: var(--text-muted); font-weight: 600;
+  font-size: 0.9rem; padding: 0.85rem 0.5rem;
+}
+.side-tabs .nav-link.active {
+  color: var(--primary); background: transparent;
+  border-bottom: 3px solid var(--primary);
+}
+.side-content { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.side-content > .tab-pane { display: none; flex: 1; flex-direction: column; min-height: 0; }
+.side-content > .tab-pane.show.active { display: flex; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 1rem; background: #fafafa; }
+.chat-msg { margin-bottom: 0.85rem; max-width: 85%; }
+.chat-msg.own { margin-left: auto; }
+.chat-msg .msg-meta {
+  font-size: 0.7rem; color: var(--text-muted);
+  margin-bottom: 0.2rem; padding: 0 0.4rem;
+}
+.chat-msg.own .msg-meta { text-align: right; }
+.chat-msg .msg-bubble {
+  background: white; padding: 0.55rem 0.85rem;
+  border-radius: 14px; border-top-left-radius: 4px;
+  box-shadow: var(--shadow-sm); font-size: 0.9rem; word-wrap: break-word;
+}
+.chat-msg.own .msg-bubble {
+  background: var(--primary); color: white;
+  border-top-left-radius: 14px; border-top-right-radius: 4px;
+}
+.chat-input-bar {
+  display: flex; gap: 0.5rem; padding: 0.75rem;
+  border-top: 1px solid var(--border-soft); background: white; flex-shrink: 0;
+}
+.ai-pane-content { padding: 1rem; overflow-y: auto; flex: 1; }
+.ai-header {
+  background: linear-gradient(135deg, var(--primary-light), #f0e7ff);
+  padding: 1rem; border-radius: var(--radius); margin-bottom: 1rem;
+}
+.ai-section {
+  background: #fafafa; border: 1px solid var(--border-soft);
+  border-radius: var(--radius); padding: 0.85rem; margin-bottom: 0.75rem;
+}
+.ai-section-title {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-weight: 600; font-size: 0.85rem;
+  margin-bottom: 0.5rem; color: var(--text-primary);
+}
+.ai-section-body { font-size: 0.85rem; color: var(--text-primary); line-height: 1.5; }
+.ai-section-body li { padding: 0.25rem 0; padding-left: 1.1rem; position: relative; }
+.ai-section-body li::before {
+  content: "•"; position: absolute; left: 0.3rem;
+  color: var(--primary); font-weight: 700;
+}
+
+/* Bandeau config */
+.config-banner {
+  background: #fff3cd; border-bottom: 1px solid #ffe69c;
+  color: #664d03; font-size: 0.85rem;
+  padding: 0.5rem 1rem; text-align: center;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .meeting-body { flex-direction: column; }
+  .side-panel {
+    width: 100%; height: 45vh;
+    border-left: none; border-top: 1px solid var(--border-soft);
+  }
+  .videos-grid { grid-template-columns: 1fr; padding: 0.5rem; }
+  .ctrl-btn { width: 44px; height: 44px; font-size: 1rem; }
+  .meeting-controls { padding: 0.6rem; gap: 0.4rem; }
+  .hero-banner h2 { font-size: 1.4rem; }
+}
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.3); }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     1. PAGE LOGIN / INSCRIPTION
+     ============================================================ -->
+<section id="auth-page" class="page active">
+  <div class="auth-wrapper">
+    <div class="auth-card card shadow-lg border-0">
+      <div class="card-body p-4 p-md-5">
+        <div class="text-center mb-4">
+          <div class="brand-logo mx-auto mb-3"><i class="bi bi-camera-video-fill"></i></div>
+          <h3 class="fw-bold mb-1">MBOKA <span class="text-primary">TECH</span></h3>
+          <p class="text-muted small mb-0">Réunions intelligentes avec compte rendu automatique</p>
+        </div>
+
+        <ul class="nav nav-pills nav-justified mb-4" role="tablist">
+          <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#login-tab">Connexion</button></li>
+          <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#register-tab">Inscription</button></li>
+        </ul>
+
+        <div class="tab-content">
+          <div class="tab-pane fade show active" id="login-tab">
+            <form id="login-form">
+              <div class="mb-3">
+                <label class="form-label small fw-semibold">Email</label>
+                <input type="email" id="login-email" class="form-control form-control-lg" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label small fw-semibold">Mot de passe</label>
+                <input type="password" id="login-password" class="form-control form-control-lg" required />
+              </div>
+              <button type="submit" class="btn btn-primary btn-lg w-100 fw-semibold">Se connecter</button>
+            </form>
+          </div>
+
+          <div class="tab-pane fade" id="register-tab">
+            <form id="register-form">
+              <div class="mb-3">
+                <label class="form-label small fw-semibold">Nom complet</label>
+                <input type="text" id="register-name" class="form-control form-control-lg" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label small fw-semibold">Email</label>
+                <input type="email" id="register-email" class="form-control form-control-lg" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label small fw-semibold">Mot de passe</label>
+                <input type="password" id="register-password" class="form-control form-control-lg" minlength="6" required />
+              </div>
+              <button type="submit" class="btn btn-primary btn-lg w-100 fw-semibold">Créer un compte</button>
+            </form>
+          </div>
+        </div>
+
+        <div id="auth-error" class="alert alert-danger mt-3 d-none small mb-0"></div>
+
+        <div class="text-center mt-4 small text-muted">
+          <i class="bi bi-info-circle"></i>
+          Pensez à configurer vos clés Firebase et OpenAI dans le bloc <code>&lt;script&gt;</code> en bas du fichier.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     2. PAGE ACCUEIL
+     ============================================================ -->
+<section id="home-page" class="page">
+  <div id="config-warning" class="config-banner d-none">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    <strong>Mode démo :</strong> Firebase n'est pas configuré. Les fonctionnalités sont limitées.
+    Modifiez <code>FIREBASE_CONFIG</code> et <code>OPENAI_CONFIG</code> dans le fichier HTML pour activer toutes les fonctionnalités.
+  </div>
+
+  <nav class="navbar navbar-expand-lg bg-white border-bottom px-3 px-md-4 sticky-top">
+    <div class="container-fluid">
+      <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="#">
+        <span class="brand-logo-sm"><i class="bi bi-camera-video-fill"></i></span>
+        MBOKA <span class="text-primary">TECH</span>
+      </a>
+      <div class="d-flex align-items-center gap-3 ms-auto">
+        <div class="text-end d-none d-md-block">
+          <div class="small fw-semibold" id="user-name-display">—</div>
+          <div class="text-muted" style="font-size:.75rem;" id="user-email-display">—</div>
+        </div>
+        <div class="avatar-circle" id="user-avatar">U</div>
+        <button class="btn btn-outline-secondary btn-sm" id="logout-btn" title="Déconnexion">
+          <i class="bi bi-box-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container-fluid p-3 p-md-4">
+    <div class="row g-3 g-md-4 mb-4">
+      <div class="col-12">
+        <div class="hero-banner p-4 p-md-5 rounded-4 text-white">
+          <h2 class="fw-bold mb-2">Bienvenue, <span id="welcome-name">collègue</span> 👋</h2>
+          <p class="mb-4 opacity-75">Lancez une réunion ou rejoignez vos équipes en un clic.</p>
+          <div class="d-flex flex-wrap gap-2">
+            <button class="btn btn-light fw-semibold" id="create-meeting-btn">
+              <i class="bi bi-plus-circle-fill me-2"></i>Créer une réunion
+            </button>
+            <button class="btn btn-outline-light fw-semibold" data-bs-toggle="modal" data-bs-target="#joinMeetingModal">
+              <i class="bi bi-box-arrow-in-right me-2"></i>Rejoindre
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 g-md-4 mb-4">
+      <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm h-100"><div class="card-body">
+          <div class="text-muted small">Total réunions</div>
+          <div class="fs-3 fw-bold" id="stat-total">0</div>
+        </div></div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm h-100"><div class="card-body">
+          <div class="text-muted small">Cette semaine</div>
+          <div class="fs-3 fw-bold text-primary" id="stat-week">0</div>
+        </div></div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm h-100"><div class="card-body">
+          <div class="text-muted small">Comptes rendus IA</div>
+          <div class="fs-3 fw-bold text-success" id="stat-reports">0</div>
+        </div></div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm h-100"><div class="card-body">
+          <div class="text-muted small">Statut</div>
+          <div class="fs-6 fw-bold mt-2">
+            <span class="badge bg-success-subtle text-success">
+              <i class="bi bi-circle-fill" style="font-size:.4rem;"></i> En ligne
+            </span>
+          </div>
+        </div></div>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white border-bottom py-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <h5 class="mb-0 fw-semibold"><i class="bi bi-calendar3 text-primary me-2"></i>Mes réunions</h5>
+          <span class="badge bg-light text-dark border" id="meetings-count">0</span>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <div id="meetings-list">
+          <div class="text-center text-muted py-5 small">
+            <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
+            Aucune réunion pour le moment
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     3. PAGE RÉUNION
+     ============================================================ -->
+<section id="meeting-page" class="page">
+  <div class="meeting-layout">
+    <header class="meeting-header">
+      <div class="d-flex align-items-center gap-3">
+        <button class="btn btn-sm btn-light" id="back-home-btn" title="Accueil"><i class="bi bi-arrow-left"></i></button>
+        <div>
+          <div class="fw-semibold" id="meeting-title">Réunion</div>
+          <div class="text-muted small">
+            ID : <span id="meeting-id-display">—</span>
+            <button class="btn btn-link btn-sm p-0 ms-1" id="copy-meeting-id" title="Copier"><i class="bi bi-clipboard"></i></button>
+          </div>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <span class="badge bg-danger-subtle text-danger" id="rec-badge" style="display:none;">
+          <i class="bi bi-record-circle-fill"></i> ENREGISTREMENT
+        </span>
+        <span class="badge bg-light text-dark border d-none d-md-inline">
+          <i class="bi bi-people-fill me-1"></i><span id="participants-count">1</span>
+        </span>
+        <span class="badge bg-light text-dark border d-none d-md-inline" id="meeting-timer">00:00</span>
+      </div>
+    </header>
+
+    <div class="meeting-body">
+      <div class="video-area">
+        <div id="videos-grid" class="videos-grid">
+          <div class="video-tile" id="local-tile">
+            <video id="local-video" autoplay muted playsinline></video>
+            <div class="video-label">
+              <i class="bi bi-person-circle"></i>
+              <span id="local-name">Vous</span>
+              <i class="bi bi-mic-fill ms-auto" id="local-mic-icon"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="meeting-controls">
+          <button class="ctrl-btn" id="toggle-mic" title="Micro"><i class="bi bi-mic-fill"></i></button>
+          <button class="ctrl-btn" id="toggle-cam" title="Caméra"><i class="bi bi-camera-video-fill"></i></button>
+          <button class="ctrl-btn" id="toggle-screen" title="Partager l'écran"><i class="bi bi-display"></i></button>
+          <button class="ctrl-btn" id="toggle-record" title="Enregistrer"><i class="bi bi-record-circle"></i></button>
+          <button class="ctrl-btn" id="toggle-chat-btn" title="Chat"><i class="bi bi-chat-dots-fill"></i></button>
+          <button class="ctrl-btn" id="toggle-ai-btn" title="Compte rendu IA"><i class="bi bi-robot"></i></button>
+          <button class="ctrl-btn ctrl-leave" id="leave-meeting-btn" title="Quitter"><i class="bi bi-telephone-x-fill"></i></button>
+        </div>
+      </div>
+
+      <aside class="side-panel" id="side-panel">
+        <ul class="nav nav-tabs side-tabs" role="tablist">
+          <li class="nav-item flex-fill"><button class="nav-link active w-100" data-bs-toggle="tab" data-bs-target="#chat-pane"><i class="bi bi-chat-dots me-1"></i> Chat</button></li>
+          <li class="nav-item flex-fill"><button class="nav-link w-100" data-bs-toggle="tab" data-bs-target="#ai-pane"><i class="bi bi-robot me-1"></i> IA</button></li>
+        </ul>
+
+        <div class="tab-content side-content">
+          <div class="tab-pane fade show active h-100" id="chat-pane">
+            <div class="chat-messages" id="chat-messages">
+              <div class="text-center text-muted small py-4">
+                <i class="bi bi-chat-square-text fs-3 d-block mb-2 opacity-50"></i>
+                Démarrez la discussion
+              </div>
+            </div>
+            <form class="chat-input-bar" id="chat-form">
+              <input type="text" class="form-control" id="chat-input" placeholder="Écrire un message..." autocomplete="off" required />
+              <button type="submit" class="btn btn-primary"><i class="bi bi-send-fill"></i></button>
+            </form>
+          </div>
+
+          <div class="tab-pane fade h-100" id="ai-pane">
+            <div class="ai-pane-content">
+              <div class="ai-header">
+                <h6 class="fw-bold mb-1"><i class="bi bi-stars text-primary"></i> Compte rendu IA</h6>
+                <p class="text-muted small mb-0">Whisper transcrit l'audio, GPT en extrait l'essentiel.</p>
+              </div>
+
+              <button class="btn btn-primary w-100 mb-3 fw-semibold" id="generate-report-btn">
+                <i class="bi bi-magic me-2"></i>Générer le compte rendu
+              </button>
+
+              <div id="ai-status" class="alert alert-info small d-none mb-3"></div>
+
+              <div class="ai-section">
+                <div class="ai-section-title"><i class="bi bi-file-text-fill text-primary"></i><span>Résumé</span></div>
+                <div class="ai-section-body" id="ai-summary"><em class="text-muted">Aucun résumé disponible.</em></div>
+              </div>
+              <div class="ai-section">
+                <div class="ai-section-title"><i class="bi bi-check2-square text-success"></i><span>Décisions</span></div>
+                <ul class="ai-section-body list-unstyled mb-0" id="ai-decisions"><li class="text-muted"><em>—</em></li></ul>
+              </div>
+              <div class="ai-section">
+                <div class="ai-section-title"><i class="bi bi-list-task text-warning"></i><span>Actions</span></div>
+                <ul class="ai-section-body list-unstyled mb-0" id="ai-actions"><li class="text-muted"><em>—</em></li></ul>
+              </div>
+              <div class="ai-section">
+                <div class="ai-section-title"><i class="bi bi-pin-angle-fill text-danger"></i><span>Points importants</span></div>
+                <ul class="ai-section-body list-unstyled mb-0" id="ai-keypoints"><li class="text-muted"><em>—</em></li></ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- MODALS -->
+<div class="modal fade" id="createMeetingModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Nouvelle réunion</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="create-meeting-form">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Titre</label>
+            <input type="text" id="new-meeting-title" class="form-control form-control-lg" placeholder="Ex : Standup Lundi" required />
+          </div>
+          <button type="submit" class="btn btn-primary w-100 btn-lg fw-semibold">
+            <i class="bi bi-camera-video-fill me-2"></i>Démarrer
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="joinMeetingModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Rejoindre une réunion</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="join-meeting-form">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">ID de la réunion</label>
+            <input type="text" id="join-meeting-id" class="form-control form-control-lg" placeholder="Coller l'ID..." required />
+          </div>
+          <button type="submit" class="btn btn-primary w-100 btn-lg fw-semibold">
+            <i class="bi bi-box-arrow-in-right me-2"></i>Rejoindre
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+  <div id="app-toast" class="toast align-items-center text-bg-dark border-0" role="alert">
+    <div class="d-flex">
+      <div class="toast-body" id="toast-body"></div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts externes -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+<!-- ============================================================
+     CONFIGURATION + LOGIQUE APPLICATIVE
+     ============================================================ -->
+<script>
+/* ==========================================================
+   ⚙️  CONFIGURATION — À ÉDITER
+   ========================================================== */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyD01TOWkASgXfK-cOCuv0NUPCeZpRg2d9Q",
+  authDomain: "mbokalisation-tech.firebaseapp.com",
+  projectId: "mbokalisation-tech",
+  storageBucket: "mbokalisation-tech.firebasestorage.app",
+  messagingSenderId: "861671437850",
+  appId: "1:861671437850:web:6f7630741a3dc9990383a3"
+};
+
+/* ⚠️ Ne jamais exposer la clé OpenAI en production : utiliser une Cloud Function */
+const OPENAI_CONFIG = {
+  apiKey: "",                // ex: "sk-..." — vide = fallback simulé
+  model: "gpt-4o-mini",
+  whisperModel: "whisper-1"
+};
+
+/* ==========================================================
+   INITIALISATION FIREBASE (avec fallback démo)
+   ========================================================== */
+let auth, db, storage;
+let firebaseReady = false;
+
+try {
+  // Vérifier que les SDK sont bien chargés
+  if (typeof firebase === "undefined") {
+    console.warn("Firebase SDK non chargé. Si vous ouvrez en file://, déployez d'abord (Netlify, Firebase Hosting, etc.)");
+    const banner = document.getElementById("config-warning");
+    if (banner) {
+      banner.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> <strong>Firebase non chargé.</strong> Ouvrez ce fichier via une URL <code>https://</code> (ex: déployez sur <a href="https://app.netlify.com/drop" target="_blank">Netlify</a>) — les fonctionnalités cloud sont indisponibles en mode <code>file://</code>.';
+      banner.classList.remove("d-none");
+    }
+  } else if (FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey !== "VOTRE_API_KEY") {
+    firebase.initializeApp(FIREBASE_CONFIG);
+    auth = firebase.auth();
+    db = firebase.firestore();
+    try { storage = firebase.storage(); } catch (e) { console.warn("Storage indisponible :", e.message); }
+    firebaseReady = true;
+    console.log("✅ Firebase initialisé : " + FIREBASE_CONFIG.projectId);
+  } else {
+    document.getElementById("config-warning").classList.remove("d-none");
+  }
+} catch (e) {
+  console.error("Firebase init error:", e);
+  const banner = document.getElementById("config-warning");
+  if (banner) {
+    banner.textContent = "⚠️ Erreur Firebase : " + e.message + " — passage en mode démo.";
+    banner.classList.remove("d-none");
+  }
+}
+
+/* ==========================================================
+   ÉTAT GLOBAL
+   ========================================================== */
+const state = {
+  user: null,
+  currentMeetingId: null,
+  currentMeetingTitle: "",
+  localStream: null,
+  screenStream: null,
+  peer: null,
+  myPeerId: null,
+  calls: {},
+  remoteStreams: {},
+  participantNames: {},
+  unsubChat: null,
+  unsubParticipants: null,
+  unsubPresenter: null,
+  unsubMeetings: null,
+  micOn: true,
+  camOn: true,
+  isScreenSharing: false,
+  isRecording: false,
+  mediaRecorder: null,
+  recordedChunks: [],
+  meetingStartTime: null,
+  timerInterval: null,
+  lastRecordedBlob: null,
+  // mode démo (sans Firebase)
+  demoMeetings: [],
+  demoMessages: {},
+};
+
+/* ==========================================================
+   HELPERS
+   ========================================================== */
+const $ = (sel) => document.querySelector(sel);
+
+function showPage(id) {
+  document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
+  $(`#${id}`).classList.add("active");
+}
+function showToast(msg, type = "dark") {
+  const toastEl = $("#app-toast");
+  toastEl.className = `toast align-items-center text-bg-${type} border-0`;
+  $("#toast-body").textContent = msg;
+  bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 3500 }).show();
+}
+function showAuthError(msg) {
+  const el = $("#auth-error");
+  el.textContent = msg;
+  el.classList.remove("d-none");
+  setTimeout(() => el.classList.add("d-none"), 5000);
+}
+function initials(name = "") {
+  return name.trim().split(/\s+/).map((s) => s[0] || "").join("").slice(0, 2).toUpperCase() || "U";
+}
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
+  );
+}
+function humanizeAuthError(err) {
+  const map = {
+    "auth/invalid-email": "Email invalide.",
+    "auth/user-not-found": "Aucun compte avec cet email.",
+    "auth/wrong-password": "Mot de passe incorrect.",
+    "auth/invalid-credential": "Identifiants invalides.",
+    "auth/email-already-in-use": "Email déjà utilisé.",
+    "auth/weak-password": "Mot de passe trop faible (6 caractères min).",
+    "auth/network-request-failed": "Problème de connexion réseau.",
+  };
+  return map[err.code] || err.message || "Erreur d'authentification.";
+}
+
+/* ==========================================================
+   1. AUTHENTIFICATION
+   ========================================================== */
+if (firebaseReady) {
+  auth.onAuthStateChanged((user) => {
+    if (user) {
+      state.user = {
+        uid: user.uid,
+        email: user.email,
+        name: user.displayName || user.email.split("@")[0],
+      };
+      enterApp();
+    } else {
+      state.user = null;
+      showPage("auth-page");
+    }
+  });
+}
+
+$("#login-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = $("#login-email").value.trim();
+  const pwd = $("#login-password").value;
+
+  if (!firebaseReady) {
+    // Mode démo
+    state.user = { uid: "demo-" + Date.now(), email, name: email.split("@")[0] };
+    enterApp();
+    showToast("Mode démo activé (sans Firebase)", "warning");
+    return;
+  }
+
+  try { await auth.signInWithEmailAndPassword(email, pwd); }
+  catch (err) { showAuthError(humanizeAuthError(err)); }
+});
+
+$("#register-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const name = $("#register-name").value.trim();
+  const email = $("#register-email").value.trim();
+  const pwd = $("#register-password").value;
+
+  if (!firebaseReady) {
+    state.user = { uid: "demo-" + Date.now(), email, name };
+    enterApp();
+    showToast("Mode démo activé (sans Firebase)", "warning");
+    return;
+  }
+
+  try {
+    const cred = await auth.createUserWithEmailAndPassword(email, pwd);
+    await cred.user.updateProfile({ displayName: name });
+    await db.collection("users").doc(cred.user.uid).set({
+      uid: cred.user.uid, name, email,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+  } catch (err) { showAuthError(humanizeAuthError(err)); }
+});
+
+$("#logout-btn").addEventListener("click", async () => {
+  if (state.currentMeetingId) leaveMeeting();
+  if (firebaseReady) await auth.signOut();
+  else { state.user = null; showPage("auth-page"); }
+  showToast("Déconnecté");
+});
+
+/* ==========================================================
+   2. ENTRÉE DANS L'APP
+   ========================================================== */
+function enterApp() {
+  $("#user-name-display").textContent = state.user.name;
+  $("#user-email-display").textContent = state.user.email;
+  $("#user-avatar").textContent = initials(state.user.name);
+  $("#welcome-name").textContent = state.user.name.split(" ")[0];
+  showPage("home-page");
+  loadMeetings();
+}
+
+/* ==========================================================
+   3. LISTE DES RÉUNIONS
+   ========================================================== */
+function loadMeetings() {
+  if (!firebaseReady) {
+    renderDemoMeetings();
+    return;
+  }
+
+  if (state.unsubMeetings) state.unsubMeetings();
+
+  state.unsubMeetings = db.collection("meetings")
+    .where("ownerId", "==", state.user.uid)
+    .orderBy("createdAt", "desc")
+    .limit(50)
+    .onSnapshot(
+      (snap) => renderMeetings(snap.docs),
+      (err) => {
+        console.error(err);
+        db.collection("meetings")
+          .where("ownerId", "==", state.user.uid)
+          .limit(50).get()
+          .then((s) => renderMeetings(s.docs));
+      }
+    );
+}
+
+function renderMeetings(docs) {
+  const list = $("#meetings-list");
+  $("#meetings-count").textContent = docs.length;
+  $("#stat-total").textContent = docs.length;
+
+  const oneWeek = 7 * 24 * 60 * 60 * 1000;
+  const now = Date.now();
+  let week = 0, reports = 0;
+  docs.forEach((d) => {
+    const data = d.data();
+    const t = data.createdAt?.toMillis?.() || 0;
+    if (now - t < oneWeek) week++;
+    if (data.hasReport) reports++;
+  });
+  $("#stat-week").textContent = week;
+  $("#stat-reports").textContent = reports;
+
+  if (docs.length === 0) {
+    list.innerHTML = `
+      <div class="text-center text-muted py-5 small">
+        <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
+        Aucune réunion pour le moment
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = docs.map((d) => {
+    const data = d.data();
+    const date = data.createdAt?.toDate?.() || new Date();
+    const dateStr = date.toLocaleString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+    return `
+      <div class="meeting-row" data-id="${d.id}" data-title="${escapeHtml(data.title || "")}">
+        <div class="meeting-icon"><i class="bi bi-camera-video-fill"></i></div>
+        <div class="meeting-info">
+          <div class="meeting-title">${escapeHtml(data.title || "Sans titre")}</div>
+          <div class="meeting-meta">
+            <i class="bi bi-clock"></i> ${dateStr}
+            ${data.hasReport ? '<span class="badge bg-success-subtle text-success ms-2"><i class="bi bi-stars"></i> Compte rendu</span>' : ""}
+          </div>
+        </div>
+        <div class="ms-3">
+          <button class="btn btn-sm btn-primary fw-semibold join-btn">
+            <i class="bi bi-arrow-right"></i> <span class="d-none d-md-inline">Rejoindre</span>
+          </button>
+        </div>
+      </div>`;
+  }).join("");
+
+  list.querySelectorAll(".meeting-row").forEach((row) => {
+    row.addEventListener("click", () => joinMeeting(row.dataset.id, row.dataset.title));
+  });
+}
+
+function renderDemoMeetings() {
+  // Construit un tableau "fake docs" pour réutiliser renderMeetings
+  const fakeDocs = state.demoMeetings.map((m) => ({
+    id: m.id,
+    data: () => ({
+      ...m,
+      createdAt: { toDate: () => m.createdAt, toMillis: () => m.createdAt.getTime() }
+    })
+  }));
+  renderMeetings(fakeDocs);
+}
+
+/* ==========================================================
+   4. CRÉATION / REJOINDRE UNE RÉUNION
+   ========================================================== */
+$("#create-meeting-btn").addEventListener("click", () => {
+  bootstrap.Modal.getOrCreateInstance($("#createMeetingModal")).show();
+});
+
+$("#create-meeting-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const title = $("#new-meeting-title").value.trim();
+
+  try {
+    let id;
+    if (firebaseReady) {
+      const ref = await db.collection("meetings").add({
+        title,
+        ownerId: state.user.uid,
+        ownerName: state.user.name,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        participants: [],
+        hasReport: false,
+      });
+      id = ref.id;
+    } else {
+      id = "demo-" + Math.random().toString(36).slice(2, 10);
+      state.demoMeetings.unshift({
+        id, title,
+        ownerId: state.user.uid,
+        ownerName: state.user.name,
+        createdAt: new Date(),
+        hasReport: false
+      });
+      renderDemoMeetings();
+    }
+    bootstrap.Modal.getInstance($("#createMeetingModal")).hide();
+    $("#new-meeting-title").value = "";
+    joinMeeting(id, title);
+  } catch (err) {
+    console.error(err);
+    showToast("Erreur lors de la création", "danger");
+  }
+});
+
+$("#join-meeting-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const id = $("#join-meeting-id").value.trim();
+  if (!id) return;
+
+  let title = "Réunion";
+  if (firebaseReady) {
+    const doc = await db.collection("meetings").doc(id).get();
+    if (!doc.exists) { showToast("Réunion introuvable", "danger"); return; }
+    title = doc.data().title || title;
+  } else {
+    const m = state.demoMeetings.find((x) => x.id === id);
+    if (m) title = m.title;
+  }
+  bootstrap.Modal.getInstance($("#joinMeetingModal")).hide();
+  $("#join-meeting-id").value = "";
+  joinMeeting(id, title);
+});
+
+/* ==========================================================
+   5. PAGE RÉUNION
+   ========================================================== */
+async function joinMeeting(meetingId, title) {
+  state.currentMeetingId = meetingId;
+  state.currentMeetingTitle = title;
+  $("#meeting-title").textContent = title;
+  $("#meeting-id-display").textContent = meetingId;
+  $("#local-name").textContent = state.user.name + " (vous)";
+  showPage("meeting-page");
+
+  document.querySelectorAll(".video-tile.remote").forEach((el) => el.remove());
+  $("#chat-messages").innerHTML = "";
+  resetAIPanel();
+
+  try {
+    await initLocalMedia();
+    if (firebaseReady) {
+      initPeer(meetingId);
+      initChat(meetingId);
+      initParticipants(meetingId);
+      state.unsubPresenter = watchPresenter(meetingId);
+    } else {
+      initDemoChat();
+    }
+    startMeetingTimer();
+  } catch (err) {
+    console.error(err);
+    showToast("Impossible d'accéder à la caméra/micro : " + err.message, "danger");
+  }
+}
+
+$("#back-home-btn").addEventListener("click", leaveMeeting);
+$("#leave-meeting-btn").addEventListener("click", leaveMeeting);
+
+function leaveMeeting() {
+  if (state.localStream) { state.localStream.getTracks().forEach((t) => t.stop()); state.localStream = null; }
+  if (state.screenStream) { state.screenStream.getTracks().forEach((t) => t.stop()); state.screenStream = null; }
+  if (state.isRecording && state.mediaRecorder) { try { state.mediaRecorder.stop(); } catch(_) {} }
+
+  if (state.peer) {
+    Object.values(state.calls).forEach((c) => c.close());
+    state.calls = {}; state.remoteStreams = {};
+    state.peer.destroy(); state.peer = null;
+  }
+
+  if (firebaseReady && state.currentMeetingId && state.myPeerId) {
+    db.collection("meetings").doc(state.currentMeetingId)
+      .collection("participants").doc(state.myPeerId).delete().catch(() => {});
+  }
+
+  if (state.unsubChat) { state.unsubChat(); state.unsubChat = null; }
+  if (state.unsubParticipants) { state.unsubParticipants(); state.unsubParticipants = null; }
+  if (state.unsubPresenter) { state.unsubPresenter(); state.unsubPresenter = null; }
+  if (state.timerInterval) { clearInterval(state.timerInterval); state.timerInterval = null; }
+
+  state.currentMeetingId = null;
+  state.myPeerId = null;
+  showPage("home-page");
+}
+
+/* ==========================================================
+   6. WEBRTC via PeerJS
+   ========================================================== */
+async function initLocalMedia() {
+  state.localStream = await navigator.mediaDevices.getUserMedia({
+    video: { width: 1280, height: 720 },
+    audio: { echoCancellation: true, noiseSuppression: true },
+  });
+  $("#local-video").srcObject = state.localStream;
+  state.micOn = true;
+  state.camOn = true;
+  updateControlsUI();
+}
+
+function initPeer(meetingId) {
+  state.peer = new Peer(undefined, {
+    debug: 1,
+    config: {
+      iceServers: [
+        { urls: "stun:stun.l.google.com:19302" },
+        { urls: "stun:stun1.l.google.com:19302" },
+      ],
+    },
+  });
+
+  state.peer.on("open", async (id) => {
+    state.myPeerId = id;
+    await db.collection("meetings").doc(meetingId)
+      .collection("participants").doc(id).set({
+        peerId: id, userId: state.user.uid, name: state.user.name,
+        joinedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+  });
+
+  state.peer.on("call", (call) => {
+    call.answer(state.localStream);
+    setupCall(call);
+  });
+
+  state.peer.on("error", (err) => {
+    console.error("[PeerJS]", err);
+    showToast("Erreur connexion vidéo : " + err.type, "warning");
+  });
+}
+
+function setupCall(call) {
+  state.calls[call.peer] = call;
+  call.on("stream", (remoteStream) => {
+    state.remoteStreams[call.peer] = remoteStream;
+    addRemoteVideo(call.peer, remoteStream);
+  });
+  call.on("close", () => removeRemoteVideo(call.peer));
+  call.on("error", (e) => console.error("[call error]", e));
+}
+
+function addRemoteVideo(peerId, stream) {
+  if (document.getElementById(`tile-${peerId}`)) return;
+  const grid = $("#videos-grid");
+  const name = state.participantNames[peerId] || "Participant";
+  const tile = document.createElement("div");
+  tile.className = "video-tile remote";
+  tile.id = `tile-${peerId}`;
+  tile.innerHTML = `
+    <video autoplay playsinline></video>
+    <div class="video-label">
+      <i class="bi bi-person-circle"></i>
+      <span>${escapeHtml(name)}</span>
+    </div>`;
+  grid.appendChild(tile);
+  tile.querySelector("video").srcObject = stream;
+  updateParticipantsCount();
+}
+
+function removeRemoteVideo(peerId) {
+  const el = document.getElementById(`tile-${peerId}`);
+  if (el) el.remove();
+  delete state.calls[peerId];
+  delete state.remoteStreams[peerId];
+  updateParticipantsCount();
+}
+
+function updateParticipantsCount() {
+  $("#participants-count").textContent = 1 + Object.keys(state.remoteStreams).length;
+}
+
+/* ==========================================================
+   7. PARTICIPANTS — détection des nouveaux pour les appeler
+   ========================================================== */
+function initParticipants(meetingId) {
+  state.unsubParticipants = db.collection("meetings").doc(meetingId)
+    .collection("participants")
+    .onSnapshot((snap) => {
+      snap.docChanges().forEach((change) => {
+        const data = change.doc.data();
+        const pid = data.peerId;
+        if (!pid || pid === state.myPeerId) return;
+
+        if (change.type === "added") {
+          state.participantNames[pid] = data.name;
+          if (state.peer && state.localStream && !state.calls[pid]) {
+            const call = state.peer.call(pid, state.localStream);
+            if (call) setupCall(call);
+          }
+        }
+        if (change.type === "removed") {
+          if (state.calls[pid]) state.calls[pid].close();
+          removeRemoteVideo(pid);
+          delete state.participantNames[pid];
+        }
+      });
+    });
+}
+
+/* ==========================================================
+   8. CONTRÔLES
+   ========================================================== */
+$("#toggle-mic").addEventListener("click", () => {
+  if (!state.localStream) return;
+  state.micOn = !state.micOn;
+  state.localStream.getAudioTracks().forEach((t) => (t.enabled = state.micOn));
+  updateControlsUI();
+});
+
+$("#toggle-cam").addEventListener("click", () => {
+  if (!state.localStream) return;
+  state.camOn = !state.camOn;
+  state.localStream.getVideoTracks().forEach((t) => (t.enabled = state.camOn));
+  updateControlsUI();
+});
+
+$("#toggle-screen").addEventListener("click", async () => {
+  if (state.isScreenSharing) await stopScreenShare();
+  else await startScreenShare();
+});
+
+async function startScreenShare() {
+  try {
+    state.screenStream = await navigator.mediaDevices.getDisplayMedia({
+      video: { cursor: "always" },
+      audio: false
+    });
+    const screenTrack = state.screenStream.getVideoTracks()[0];
+
+    let success = 0, failed = 0;
+
+    // Remplacer la piste vidéo dans toutes les connexions
+    for (const peerId in state.calls) {
+      const call = state.calls[peerId];
+      try {
+        const pc = call.peerConnection;
+        if (!pc) { failed++; continue; }
+
+        const sender = pc.getSenders().find((s) => s.track && s.track.kind === "video");
+
+        if (sender) {
+          await sender.replaceTrack(screenTrack);
+          success++;
+        } else {
+          // Pas de sender vidéo → on rappelle le peer avec le nouveau stream
+          call.close();
+          delete state.calls[peerId];
+          const newCall = state.peer.call(peerId, state.screenStream);
+          if (newCall) setupCall(newCall);
+          success++;
+        }
+      } catch (err) {
+        console.error("[screenshare] erreur peer", peerId, err);
+        failed++;
+      }
+    }
+
+    // Aperçu local
+    $("#local-video").srcObject = state.screenStream;
+    state.isScreenSharing = true;
+    updateControlsUI();
+
+    // === MODE PRÉSENTATION (comme Teams/Meet) ===
+    activatePresentationMode(state.myPeerId || "local");
+
+    // Signaler aux autres participants via Firestore
+    if (firebaseReady && state.currentMeetingId && state.myPeerId) {
+      try {
+        await db.collection("meetings").doc(state.currentMeetingId)
+          .update({ presenterId: state.myPeerId });
+      } catch (e) { console.warn("Impossible de signaler le partage :", e); }
+    }
+
+    // Détecter quand l'utilisateur arrête le partage via la barre du navigateur
+    screenTrack.onended = () => stopScreenShare();
+
+    if (success > 0) {
+      showToast(`📺 Partage d'écran actif (${success} participant${success > 1 ? "s" : ""})`, "success");
+    } else if (failed > 0) {
+      showToast("Partage actif localement, mais erreur côté participants", "warning");
+    } else {
+      showToast("📺 Partage d'écran activé", "primary");
+    }
+  } catch (err) {
+    console.error(err);
+    if (err.name !== "NotAllowedError") {
+      showToast("Partage d'écran : " + err.message, "warning");
+    }
+  }
+}
+
+async function stopScreenShare() {
+  if (state.screenStream) {
+    state.screenStream.getTracks().forEach((t) => t.stop());
+    state.screenStream = null;
+  }
+
+  if (state.localStream) {
+    const camTrack = state.localStream.getVideoTracks()[0];
+
+    // Remettre la caméra dans toutes les connexions
+    for (const peerId in state.calls) {
+      const call = state.calls[peerId];
+      try {
+        const pc = call.peerConnection;
+        if (!pc || !camTrack) continue;
+        const sender = pc.getSenders().find((s) => s.track && s.track.kind === "video");
+        if (sender) {
+          await sender.replaceTrack(camTrack);
+        } else {
+          // Si pas de sender, on rappelle
+          call.close();
+          delete state.calls[peerId];
+          const newCall = state.peer.call(peerId, state.localStream);
+          if (newCall) setupCall(newCall);
+        }
+      } catch (err) {
+        console.error("[stop screenshare]", err);
+      }
+    }
+    $("#local-video").srcObject = state.localStream;
+  }
+  state.isScreenSharing = false;
+  updateControlsUI();
+
+  // === DÉSACTIVER MODE PRÉSENTATION ===
+  deactivatePresentationMode();
+
+  // Effacer le signal dans Firestore
+  if (firebaseReady && state.currentMeetingId) {
+    try {
+      const docRef = db.collection("meetings").doc(state.currentMeetingId);
+      const snap = await docRef.get();
+      if (snap.exists && snap.data().presenterId === state.myPeerId) {
+        await docRef.update({ presenterId: firebase.firestore.FieldValue.delete() });
+      }
+    } catch (e) { console.warn(e); }
+  }
+
+  showToast("Partage d'écran arrêté", "secondary");
+}
+
+/* === MODE PRÉSENTATION (style Teams/Google Meet) === */
+function activatePresentationMode(presenterId) {
+  const grid = $("#videos-grid");
+  grid.classList.add("presenting");
+
+  // Retirer .presenter de tous les tiles
+  document.querySelectorAll(".video-tile.presenter").forEach((el) => el.classList.remove("presenter"));
+
+  // Marquer le bon tile comme presenter
+  if (presenterId === state.myPeerId || presenterId === "local") {
+    $("#local-tile").classList.add("presenter");
+  } else {
+    const tile = document.getElementById(`tile-${presenterId}`);
+    if (tile) tile.classList.add("presenter");
+  }
+}
+
+function deactivatePresentationMode() {
+  const grid = $("#videos-grid");
+  grid.classList.remove("presenting");
+  document.querySelectorAll(".video-tile.presenter").forEach((el) => el.classList.remove("presenter"));
+}
+
+/* Listener Firestore : qui partage l'écran ? */
+function watchPresenter(meetingId) {
+  if (!firebaseReady) return;
+  return db.collection("meetings").doc(meetingId)
+    .onSnapshot((snap) => {
+      if (!snap.exists) return;
+      const presenterId = snap.data().presenterId;
+
+      if (presenterId && presenterId !== state.myPeerId) {
+        // Quelqu'un d'autre partage
+        activatePresentationMode(presenterId);
+      } else if (!presenterId && !state.isScreenSharing) {
+        // Plus personne ne partage
+        deactivatePresentationMode();
+      }
+    });
+}
+
+$("#toggle-record").addEventListener("click", () => {
+  if (state.isRecording) stopRecording();
+  else startRecording();
+});
+
+$("#toggle-chat-btn").addEventListener("click", () => {
+  $("#side-panel").classList.toggle("collapsed");
+});
+$("#toggle-ai-btn").addEventListener("click", () => {
+  $("#side-panel").classList.remove("collapsed");
+  document.querySelector('[data-bs-target="#ai-pane"]').click();
+});
+
+function updateControlsUI() {
+  const micBtn = $("#toggle-mic");
+  micBtn.classList.toggle("off", !state.micOn);
+  micBtn.querySelector("i").className = state.micOn ? "bi bi-mic-fill" : "bi bi-mic-mute-fill";
+  $("#local-mic-icon").className = state.micOn
+    ? "bi bi-mic-fill ms-auto" : "bi bi-mic-mute-fill ms-auto";
+
+  const camBtn = $("#toggle-cam");
+  camBtn.classList.toggle("off", !state.camOn);
+  camBtn.querySelector("i").className = state.camOn ? "bi bi-camera-video-fill" : "bi bi-camera-video-off-fill";
+
+  $("#toggle-screen").classList.toggle("active", state.isScreenSharing);
+
+  const recBtn = $("#toggle-record");
+  recBtn.classList.toggle("recording", state.isRecording);
+  $("#rec-badge").style.display = state.isRecording ? "" : "none";
+}
+
+/* ==========================================================
+   9. CHAT TEMPS RÉEL
+   ========================================================== */
+function initChat(meetingId) {
+  $("#chat-messages").innerHTML = "";
+  state.unsubChat = db.collection("meetings").doc(meetingId)
+    .collection("messages").orderBy("createdAt", "asc")
+    .onSnapshot((snap) => {
+      snap.docChanges().forEach((change) => {
+        if (change.type === "added") renderChatMessage(change.doc.data());
+      });
+    });
+}
+
+function initDemoChat() {
+  $("#chat-messages").innerHTML = "";
+  // Affiche les messages déjà stockés en mémoire pour cette réunion
+  const msgs = state.demoMessages[state.currentMeetingId] || [];
+  msgs.forEach(renderChatMessage);
+}
+
+$("#chat-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const input = $("#chat-input");
+  const text = input.value.trim();
+  if (!text || !state.currentMeetingId) return;
+  input.value = "";
+
+  const msg = {
+    text,
+    userId: state.user.uid,
+    userName: state.user.name,
+    createdAt: { toDate: () => new Date() }
+  };
+
+  if (firebaseReady) {
+    try {
+      await db.collection("meetings").doc(state.currentMeetingId)
+        .collection("messages").add({
+          text, userId: state.user.uid, userName: state.user.name,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+    } catch (err) {
+      console.error(err);
+      showToast("Message non envoyé", "danger");
+    }
+  } else {
+    if (!state.demoMessages[state.currentMeetingId]) state.demoMessages[state.currentMeetingId] = [];
+    state.demoMessages[state.currentMeetingId].push(msg);
+    renderChatMessage(msg);
+  }
+});
+
+function renderChatMessage(msg) {
+  const isOwn = msg.userId === state.user.uid;
+  const time = msg.createdAt?.toDate?.()
+    .toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) || "";
+
+  const container = $("#chat-messages");
+  if (container.querySelector(".text-center.text-muted")) container.innerHTML = "";
+
+  const div = document.createElement("div");
+  div.className = `chat-msg ${isOwn ? "own" : ""}`;
+  div.innerHTML = `
+    <div class="msg-meta">${escapeHtml(msg.userName || "Anonyme")} · ${time}</div>
+    <div class="msg-bubble">${escapeHtml(msg.text)}</div>`;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+/* ==========================================================
+   10. ENREGISTREMENT AUDIO
+   ========================================================== */
+function startRecording() {
+  if (!state.localStream) return;
+  const audioStream = new MediaStream(state.localStream.getAudioTracks());
+  state.recordedChunks = [];
+
+  let options = { mimeType: "audio/webm" };
+  if (!MediaRecorder.isTypeSupported(options.mimeType)) options = {};
+
+  state.mediaRecorder = new MediaRecorder(audioStream, options);
+  state.mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) state.recordedChunks.push(e.data); };
+  state.mediaRecorder.onstop = handleRecordingStop;
+  state.mediaRecorder.start(1000);
+  state.isRecording = true;
+  updateControlsUI();
+  showToast("Enregistrement démarré", "primary");
+}
+
+function stopRecording() {
+  if (state.mediaRecorder && state.isRecording) {
+    state.mediaRecorder.stop();
+    state.isRecording = false;
+    updateControlsUI();
+    showToast("Enregistrement terminé", "success");
+  }
+}
+
+async function handleRecordingStop() {
+  const blob = new Blob(state.recordedChunks, { type: "audio/webm" });
+  state.recordedChunks = [];
+  state.lastRecordedBlob = blob;
+
+  if (!state.currentMeetingId || !firebaseReady) return;
+
+  try {
+    const path = `audio-recordings/${state.currentMeetingId}/${Date.now()}.webm`;
+    const ref = storage.ref(path);
+    await ref.put(blob);
+    const url = await ref.getDownloadURL();
+    await db.collection("meetings").doc(state.currentMeetingId).update({
+      lastAudioUrl: url, lastAudioPath: path,
+      lastAudioAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    showToast("Audio sauvegardé sur Firebase Storage", "success");
+  } catch (err) {
+    console.error(err);
+    showToast("Erreur upload audio (gardé en mémoire)", "warning");
+  }
+}
+
+/* ==========================================================
+   11. MODULE IA — Whisper + GPT
+   ========================================================== */
+$("#generate-report-btn").addEventListener("click", generateReport);
+
+async function generateReport() {
+  if (!state.currentMeetingId) return;
+
+  const statusEl = $("#ai-status");
+  statusEl.classList.remove("d-none");
+  statusEl.className = "alert alert-info small mb-3";
+  statusEl.textContent = "🧠 Analyse de la réunion en cours...";
+
+  try {
+    let transcript = "";
+
+    if (state.lastRecordedBlob && OPENAI_CONFIG.apiKey) {
+      statusEl.textContent = "🎙️ Transcription Whisper en cours...";
+      transcript = await transcribeWithWhisper(state.lastRecordedBlob);
+    }
+
+    if (!transcript) transcript = await getChatTranscript();
+
+    if (!transcript || transcript.trim().length < 20) {
+      statusEl.className = "alert alert-warning small mb-3";
+      statusEl.textContent = "⚠️ Pas assez de contenu. Discutez ou enregistrez avant.";
+      return;
+    }
+
+    statusEl.textContent = "✨ GPT structure le compte rendu...";
+    const report = OPENAI_CONFIG.apiKey
+      ? await summarizeWithGPT(transcript)
+      : simulatedReport(transcript);
+
+    displayReport(report);
+
+    if (firebaseReady) {
+      await db.collection("reports").add({
+        meetingId: state.currentMeetingId,
+        meetingTitle: state.currentMeetingTitle,
+        ownerId: state.user.uid,
+        transcript: transcript.slice(0, 50000),
+        ...report,
+        simulated: !OPENAI_CONFIG.apiKey,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      await db.collection("meetings").doc(state.currentMeetingId).update({ hasReport: true });
+    }
+
+    statusEl.className = "alert alert-success small mb-3";
+    statusEl.textContent = OPENAI_CONFIG.apiKey
+      ? "✅ Compte rendu généré par OpenAI."
+      : "✅ Compte rendu généré (mode simulé — ajoutez une clé OpenAI pour Whisper + GPT).";
+  } catch (err) {
+    console.error(err);
+    statusEl.className = "alert alert-danger small mb-3";
+    statusEl.textContent = "❌ Erreur : " + (err.message || "voir la console");
+  }
+}
+
+async function transcribeWithWhisper(blob) {
+  const fd = new FormData();
+  fd.append("file", blob, "audio.webm");
+  fd.append("model", OPENAI_CONFIG.whisperModel);
+  fd.append("language", "fr");
+
+  const res = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${OPENAI_CONFIG.apiKey}` },
+    body: fd,
+  });
+  if (!res.ok) throw new Error("Whisper : " + (await res.text()));
+  const data = await res.json();
+  return data.text || "";
+}
+
+async function summarizeWithGPT(transcript) {
+  const prompt = `Tu es un assistant expert en compte rendu de réunion d'entreprise.
+À partir du texte ci-dessous, produis un JSON STRICT avec cette structure exacte :
+{
+  "summary": "résumé synthétique en 3-5 phrases",
+  "decisions": ["décision 1", "décision 2"],
+  "actions": ["action attribuée 1", "action attribuée 2"],
+  "keypoints": ["point important 1", "point important 2"]
+}
+
+Réponds UNIQUEMENT avec le JSON, sans markdown, sans préambule.
+
+TEXTE :
+"""
+${transcript.slice(0, 12000)}
+"""`;
+
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${OPENAI_CONFIG.apiKey}`,
+    },
+    body: JSON.stringify({
+      model: OPENAI_CONFIG.model,
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.3,
+      response_format: { type: "json_object" },
+    }),
+  });
+  if (!res.ok) throw new Error("GPT : " + (await res.text()));
+  const data = await res.json();
+  const txt = data.choices?.[0]?.message?.content || "{}";
+  try { return JSON.parse(txt); }
+  catch { return simulatedReport(transcript); }
+}
+
+async function getChatTranscript() {
+  if (firebaseReady) {
+    const snap = await db.collection("meetings").doc(state.currentMeetingId)
+      .collection("messages").orderBy("createdAt", "asc").get();
+    return snap.docs.map((d) => `${d.data().userName} : ${d.data().text}`).join("\n");
+  } else {
+    const msgs = state.demoMessages[state.currentMeetingId] || [];
+    return msgs.map((m) => `${m.userName} : ${m.text}`).join("\n");
+  }
+}
+
+function simulatedReport(transcript) {
+  const lines = transcript.split("\n").filter(Boolean);
+  const sample = lines.slice(0, 6).map((l) => l.replace(/^[^:]+:\s*/, "")).filter(Boolean);
+  const pickWords = transcript.split(/\s+/).filter((w) => w.length > 5).slice(0, 8);
+
+  return {
+    summary: `Réunion "${state.currentMeetingTitle}" avec ${1 + Object.keys(state.remoteStreams).length} participant(s). ` +
+      `Les échanges ont porté sur ${pickWords.slice(0, 4).join(", ") || "divers sujets"}. ` +
+      `${lines.length} interventions ont été enregistrées.`,
+    decisions: sample.length
+      ? sample.slice(0, 3).map((s) => "Validation : " + s.slice(0, 80))
+      : ["Aucune décision formelle identifiée"],
+    actions: [
+      "Rédiger le suivi de cette réunion",
+      "Partager le compte rendu avec l'équipe",
+      "Planifier le point de suivi",
+    ],
+    keypoints: sample.length
+      ? sample.slice(0, 4).map((s) => s.slice(0, 100))
+      : ["Discussion ouverte entre participants", "Échanges constructifs"],
+  };
+}
+
+function displayReport(r) {
+  $("#ai-summary").innerHTML = escapeHtml(r.summary || "—");
+  $("#ai-decisions").innerHTML = (r.decisions || []).length
+    ? r.decisions.map((d) => `<li>${escapeHtml(d)}</li>`).join("")
+    : '<li class="text-muted"><em>Aucune décision</em></li>';
+  $("#ai-actions").innerHTML = (r.actions || []).length
+    ? r.actions.map((a) => `<li>${escapeHtml(a)}</li>`).join("")
+    : '<li class="text-muted"><em>Aucune action</em></li>';
+  $("#ai-keypoints").innerHTML = (r.keypoints || []).length
+    ? r.keypoints.map((k) => `<li>${escapeHtml(k)}</li>`).join("")
+    : '<li class="text-muted"><em>Aucun point</em></li>';
+}
+
+function resetAIPanel() {
+  $("#ai-summary").innerHTML = '<em class="text-muted">Aucun résumé disponible.</em>';
+  $("#ai-decisions").innerHTML = '<li class="text-muted"><em>—</em></li>';
+  $("#ai-actions").innerHTML = '<li class="text-muted"><em>—</em></li>';
+  $("#ai-keypoints").innerHTML = '<li class="text-muted"><em>—</em></li>';
+  $("#ai-status").classList.add("d-none");
+}
+
+/* ==========================================================
+   12. UTILITAIRES
+   ========================================================== */
+function startMeetingTimer() {
+  state.meetingStartTime = Date.now();
+  if (state.timerInterval) clearInterval(state.timerInterval);
+  state.timerInterval = setInterval(() => {
+    const sec = Math.floor((Date.now() - state.meetingStartTime) / 1000);
+    const m = String(Math.floor(sec / 60)).padStart(2, "0");
+    const s = String(sec % 60).padStart(2, "0");
+    $("#meeting-timer").textContent = `${m}:${s}`;
+  }, 1000);
+}
+
+$("#copy-meeting-id").addEventListener("click", async () => {
+  if (!state.currentMeetingId) return;
+  try {
+    await navigator.clipboard.writeText(state.currentMeetingId);
+    showToast("ID copié dans le presse-papier", "success");
+  } catch {
+    showToast(state.currentMeetingId);
+  }
+});
+
+window.addEventListener("beforeunload", (e) => {
+  if (state.currentMeetingId) {
+    leaveMeeting();
+    e.preventDefault();
+    e.returnValue = "";
+  }
+});
+</script>
+</body>
+</html>
