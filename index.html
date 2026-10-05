@@ -4045,10 +4045,8 @@ async function syncMyState() {
   } catch (e) { /* silently */ }
 }
 
-/* ---------- 7. BRANCHER TOUT au join meeting ---------- */
-const originalJoinMeeting = window.joinMeeting;
-// On va injecter via un patch sur joinMeeting
-
+/* ---------- 7. QUITTER PROPREMENT à la fermeture de l'onglet ---------- */
+window.addEventListener("beforeunload", (e) => {
   if (state.currentMeetingId) {
     leaveMeeting();
     e.preventDefault();
