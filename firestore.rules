@@ -1,0 +1,37 @@
+rules_version = '2';
+
+// Règles Firestore pour MbokaTech.
+// À coller dans la console Firebase : Firestore Database > Règles > Publier.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null; // inclut les invités (connexion anonyme)
+    }
+
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow write: if signedIn() && request.auth.uid == uid;
+    }
+
+    match /meetings/{meetingId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.ownerId == request.auth.uid;
+      // Les participants mettent à jour le partage d'écran, les notes, l'enregistrement…
+      allow update: if signedIn();
+      allow delete: if signedIn() && resource.data.ownerId == request.auth.uid;
+
+      // participants, messages, transcript, commands, reactions, waiting,
+      // polls, questions, whiteboard
+      match /{subcollection}/{docId} {
+        allow read, write: if signedIn();
+      }
+    }
+
+    match /reports/{reportId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.ownerId == request.auth.uid;
+      allow update, delete: if signedIn() && resource.data.ownerId == request.auth.uid;
+    }
+  }
+}

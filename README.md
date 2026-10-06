@@ -37,9 +37,15 @@ reports/{id}                  comptes rendus IA
 Storage : audio-recordings/, chat-files/
 ```
 
-Si vos règles Firestore listent les sous-collections une par une, ajoutez `waiting`, `polls`,
-`questions` et `whiteboard`. Sinon l'application affiche « Accès refusé par les règles Firestore ».
-Activez aussi la connexion **anonyme** dans Firebase Authentication pour les invités.
+### Configuration Firebase (obligatoire)
+
+1. **Règles Firestore** : console Firebase › *Firestore Database* › *Règles*. Remplacez tout le contenu par
+   celui du fichier [`firestore.rules`](firestore.rules), puis cliquez sur **Publier**.
+2. **Règles Storage** (fichiers du chat, audio) : console Firebase › *Storage* › *Règles*. Collez
+   [`storage.rules`](storage.rules), puis cliquez sur **Publier**.
+3. **Invités** : *Authentication* › *Sign-in method* › activez **Anonyme**.
+
+Sans ces règles, l'application affiche « Firebase refuse l'accès… ».
 
 ## Limites connues
 
