@@ -4870,11 +4870,12 @@ function fmtDuration(ms) {
   return `${String(Math.floor(sec / 60)).padStart(2, "0")}:${String(sec % 60).padStart(2, "0")}`;
 }
 let permWarned = false;
-function permissionWarn(err) {
-  console.warn(err);
+function permissionWarn(err, where = "") {
+  console.warn(where, err);
   if (err?.code === "permission-denied" && !permWarned) {
     permWarned = true;
-    showToast("Accès refusé par les règles Firestore : mettez-les à jour (voir README)", "danger");
+    const part = where ? ` (${where.split("/").pop()})` : "";
+    showToast(`Firebase refuse l'accès${part} : publiez le fichier firestore.rules dans la console Firebase › Firestore › Règles`, "danger");
   }
 }
 
@@ -4990,7 +4991,7 @@ const rt = {
     if (firebaseReady) {
       return db.collection(path).onSnapshot(
         (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
-        permissionWarn
+        (err) => permissionWarn(err, path)
       );
     }
     (this.memListeners[path] = this.memListeners[path] || new Set()).add(cb);
