@@ -1698,6 +1698,19 @@ const GEMINI_CONFIG = {
 };
 
 /* ==========================================================
+   RELAIS VIDÉO (TURN) — indispensable entre réseaux mobiles / box
+   Sans relais, deux appareils derrière des NAT stricts (4G, entreprise)
+   ne peuvent pas échanger la vidéo. Compte gratuit : https://www.metered.ca/stun-turn
+   puis collez ici l'URL « API » de vos identifiants TURN.
+   ========================================================== */
+const TURN_CONFIG = {
+  // ex : "https://votre-app.metered.live/api/v1/turn/credentials?apiKey=XXXX"
+  meteredApiUrl: "",
+  // ou bien des serveurs fixes : [{ urls: "turn:...", username: "...", credential: "..." }]
+  servers: [],
+};
+
+/* ==========================================================
    INITIALISATION FIREBASE (avec fallback démo)
    ========================================================== */
 let auth, db, storage;
@@ -2490,6 +2503,11 @@ function leaveMeeting(opts = {}) {
   state.localTranscriptEntries = [];
   state.isOrganizer = false;
 
+  Object.values(state.callWatchdogs || {}).forEach(clearTimeout);
+  state.callWatchdogs = {};
+  state.callRetries = {};
+  state.peerOpen = false;
+  state.pendingPeers = new Set();
   state.currentMeetingId = null;
   state.myPeerId = null;
   if (!opts.stayOnPage) showPage("home-page");
@@ -2517,32 +2535,44 @@ async function initLocalMedia() {
   updateControlsUI();
 }
 
-function initPeer(meetingId) {
+const STUN_SERVERS = [
+  { urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"] },
+  { urls: "stun:global.stun.twilio.com:3478" },
+];
+// Relais publics de secours (fiabilité non garantie) : préférez TURN_CONFIG
+const FALLBACK_TURN = [
+  { urls: "turn:openrelay.metered.ca:80", username: "openrelayproject", credential: "openrelayproject" },
+  { urls: "turn:openrelay.metered.ca:443", username: "openrelayproject", credential: "openrelayproject" },
+  { urls: "turn:openrelay.metered.ca:443?transport=tcp", username: "openrelayproject", credential: "openrelayproject" },
+];
+
+async function getIceServers() {
+  let turn = TURN_CONFIG.servers || [];
+  if (TURN_CONFIG.meteredApiUrl) {
+    try {
+      const res = await fetch(TURN_CONFIG.meteredApiUrl);
+      if (res.ok) turn = [...turn, ...(await res.json())];
+    } catch (e) { console.warn("TURN Metered indisponible :", e); }
+  }
+  if (!turn.length) turn = FALLBACK_TURN;
+  return [...STUN_SERVERS, ...turn];
+}
+
+async function initPeer(meetingId) {
+  state.peerOpen = false;
+  state.pendingPeers = new Set();
+  const iceServers = await getIceServers();
+  if (state.currentMeetingId !== meetingId) return; // réunion quittée entre-temps
   state.peer = new Peer(undefined, {
     debug: 1,
-    config: {
-      iceServers: [
-        { urls: "stun:stun.l.google.com:19302" },
-        { urls: "stun:stun1.l.google.com:19302" },
-        { urls: "stun:stun2.l.google.com:19302" },
-        // TURN gratuits (OpenRelay) — essentiels pour les réseaux mobiles/restreints
-        {
-          urls: "turn:openrelay.metered.ca:80",
-          username: "openrelayproject",
-          credential: "openrelayproject"
-        },
-        {
-          urls: "turn:openrelay.metered.ca:443",
-          username: "openrelayproject",
-          credential: "openrelayproject"
-        },
-        {
-          urls: "turn:openrelay.metered.ca:443?transport=tcp",
-          username: "openrelayproject",
-          credential: "openrelayproject"
-        }
-      ],
-    },
+    config: { iceServers },
+  });
+
+  state.peer.on("disconnected", () => {
+    // Perte du serveur de signalisation : les appels en cours continuent, on se reconnecte
+    if (state.peer && !state.peer.destroyed && state.currentMeetingId) {
+      setTimeout(() => { try { state.peer.reconnect(); } catch (_) {} }, 1500);
+    }
   });
 
   state.peer.on("open", async (id) => {
@@ -2578,6 +2608,11 @@ function initPeer(meetingId) {
         lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
       });
 
+    // Les participants vus avant que la connexion soit prête peuvent maintenant être appelés
+    state.peerOpen = true;
+    [...(state.pendingPeers || [])].forEach((pid) => connectToPeer(pid));
+    state.pendingPeers = new Set();
+
     // 3. HEARTBEAT : mise à jour de "lastSeen" toutes les 10s
     if (state.heartbeatInterval) clearInterval(state.heartbeatInterval);
     state.heartbeatInterval = setInterval(async () => {
@@ -2596,6 +2631,11 @@ function initPeer(meetingId) {
     console.log(`📞 Appel entrant de ${call.peer} (type: ${callType})`);
     if (call.metadata?.userName && !state.participantNames[call.peer]) {
       state.participantNames[call.peer] = call.metadata.userName;
+    }
+    if (callType === "camera" && state.calls[call.peer] && state.calls[call.peer] !== call) {
+      const old = state.calls[call.peer];
+      delete state.calls[call.peer];
+      try { old.close(); } catch (_) {}
     }
     call.answer(state.localStream);
     setupCall(call, callType);
@@ -2629,13 +2669,84 @@ function setupCall(call, type = "camera") {
   });
   call.on("close", () => {
     if (type === "screen") {
+      if (state.screenCalls?.[call.peer] !== call) return; // remplacé par un appel plus récent
       removeRemoteScreenVideo(call.peer);
-      if (state.screenCalls) delete state.screenCalls[call.peer];
+      delete state.screenCalls[call.peer];
     } else {
+      if (state.calls[call.peer] !== call) return; // remplacé par un appel plus récent
       removeRemoteVideo(call.peer);
     }
   });
   call.on("error", (e) => console.error(`[call ${type} error]`, e));
+  watchIce(call, type);
+}
+
+/* Suit la connexion réseau d'un appel : relance en cas d'échec, explique sinon */
+function watchIce(call, type) {
+  const attach = () => {
+    const pc = call.peerConnection;
+    if (!pc) return false;
+    pc.addEventListener("iceconnectionstatechange", () => {
+      const st = pc.iceConnectionState;
+      console.log(`[ICE ${type}] ${call.peer} → ${st}`);
+      if (st === "failed" && type === "camera" && state.calls[call.peer] === call) {
+        const name = state.participantNames[call.peer] || "un participant";
+        const tries = (state.callRetries[call.peer] = (state.callRetries[call.peer] || 0) + 1);
+        if (tries <= 3) {
+          showToast(`Connexion vidéo avec ${name} interrompue : nouvelle tentative…`, "warning");
+          delete state.calls[call.peer];
+          try { call.close(); } catch (_) {}
+          setTimeout(() => connectToPeer(call.peer, { force: true }), 1500 * tries);
+        } else {
+          showToast(`Impossible de relier la vidéo avec ${name} : vos réseaux nécessitent un relais TURN (voir README)`, "danger");
+        }
+      }
+      if (st === "connected" || st === "completed") state.callRetries[call.peer] = 0;
+    });
+    return true;
+  };
+  if (!attach()) setTimeout(attach, 500);
+}
+
+/* Établit l'appel caméra avec un participant.
+   Une seule des deux parties appelle (l'identifiant le plus grand), pour éviter
+   deux appels croisés ; l'autre prend le relais si rien n'arrive. */
+state.callRetries = {};
+state.callWatchdogs = {};
+function connectToPeer(pid, { force = false } = {}) {
+  if (!pid || pid === state.myPeerId || !state.localStream) return;
+  if (!state.peer || !state.peerOpen) { state.pendingPeers?.add(pid); return; }
+
+  const existing = state.calls[pid];
+  if (existing && existing.open && !force) return;
+  const iAmCaller = force || state.myPeerId > pid;
+
+  if (iAmCaller) {
+    if (existing && !force) return; // appel déjà en cours de négociation
+    const call = state.peer.call(pid, state.localStream, {
+      metadata: { type: "camera", userName: state.user.name },
+    });
+    if (call) setupCall(call, "camera");
+  }
+  // Filet de sécurité : sans vidéo au bout de 12 s, on (re)lance l'appel nous-mêmes
+  clearTimeout(state.callWatchdogs[pid]);
+  state.callWatchdogs[pid] = setTimeout(() => {
+    if (!state.currentMeetingId || state.remoteStreams[pid]) return;
+    if (!(state.allParticipants || []).some((p) => p.peerId === pid)) return;
+    console.log("⏱️ Pas de vidéo de", pid, "→ nouvel appel");
+    const old = state.calls[pid];
+    delete state.calls[pid];
+    try { old?.close(); } catch (_) {}
+    connectToPeer(pid, { force: true });
+  }, iAmCaller ? 12000 : 8000);
+
+  // Si je partage déjà mon écran, le nouveau venu doit le recevoir aussi
+  if (state.isScreenSharing && state.screenStream && !state.screenCalls?.[pid]) {
+    const screenCall = state.peer.call(pid, state.screenStream, {
+      metadata: { type: "screen", userName: state.user.name },
+    });
+    if (screenCall) setupCall(screenCall, "screen");
+  }
 }
 
 /* Tuile de partage d'écran distante (séparée de la caméra) */
@@ -2756,23 +2867,8 @@ function initParticipants(meetingId) {
             return;
           }
 
-          if (change.type === "added") {
-            state.participantNames[pid] = data.name;
-            if (state.peer && state.localStream && !state.calls[pid]) {
-              const call = state.peer.call(pid, state.localStream, {
-                metadata: { type: "camera", userName: state.user.name }
-              });
-              if (call) setupCall(call, "camera");
-
-              // Si je suis déjà en train de partager mon écran
-              if (state.isScreenSharing && state.screenStream) {
-                const screenCall = state.peer.call(pid, state.screenStream, {
-                  metadata: { type: "screen", userName: state.user.name }
-                });
-                if (screenCall) setupCall(screenCall, "screen");
-              }
-            }
-          }
+          state.participantNames[pid] = data.name;
+          if (!state.calls[pid]) connectToPeer(pid);
         }
         if (change.type === "removed") {
           if (state.calls[pid]) state.calls[pid].close();
