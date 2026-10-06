@@ -846,6 +846,8 @@ const STUN_SERVERS = [
 ];
 // Relais publics de secours (fiabilité non garantie) : préférez TURN_CONFIG
 const FALLBACK_TURN = [
+  { urls: ["turn:freeturn.net:3478", "turn:freeturn.net:3478?transport=tcp"], username: "free", credential: "free" },
+  { urls: "turns:freeturn.tel:5349", username: "free", credential: "free" },
   { urls: "turn:openrelay.metered.ca:80", username: "openrelayproject", credential: "openrelayproject" },
   { urls: "turn:openrelay.metered.ca:443", username: "openrelayproject", credential: "openrelayproject" },
   { urls: "turn:openrelay.metered.ca:443?transport=tcp", username: "openrelayproject", credential: "openrelayproject" },
@@ -991,9 +993,11 @@ function watchIce(call, type) {
   const attach = () => {
     const pc = call.peerConnection;
     if (!pc) return false;
+    if (type === "camera") setTileNetState(call.peer, pc.iceConnectionState);
     pc.addEventListener("iceconnectionstatechange", () => {
       const st = pc.iceConnectionState;
       console.log(`[ICE ${type}] ${call.peer} → ${st}`);
+      if (type === "camera" && state.calls[call.peer] === call) setTileNetState(call.peer, st);
       if (st === "failed" && type === "camera" && state.calls[call.peer] === call) {
         const name = state.participantNames[call.peer] || "un participant";
         const tries = (state.callRetries[call.peer] = (state.callRetries[call.peer] || 0) + 1);
@@ -1011,6 +1015,30 @@ function watchIce(call, type) {
     return true;
   };
   if (!attach()) setTimeout(attach, 500);
+}
+
+/* Affiche sur la tuile l'état de la connexion vidéo (connexion, échec réseau…) */
+state.netStates = {};
+function setTileNetState(peerId, st) {
+  state.netStates[peerId] = st;
+  const tile = document.getElementById(`tile-${peerId}`);
+  if (!tile) return;
+  let el = tile.querySelector(".tile-netstate");
+  if (!el) {
+    el = document.createElement("div");
+    el.className = "tile-netstate";
+    tile.appendChild(el);
+  }
+  const ok = st === "connected" || st === "completed";
+  const msg = {
+    new: "⏳ Connexion vidéo…",
+    checking: "⏳ Connexion vidéo…",
+    disconnected: "⚠️ Connexion instable…",
+    failed: "⚠️ Réseau bloqué : relais TURN nécessaire",
+  }[st] || "";
+  el.textContent = msg;
+  el.style.display = ok || !msg ? "none" : "";
+  el.classList.toggle("bad", st === "failed");
 }
 
 /* Établit l'appel caméra avec un participant.
@@ -1054,6 +1082,27 @@ function connectToPeer(pid, { force = false } = {}) {
   }
 }
 
+/* Lance la lecture d'une vidéo reçue. Certains navigateurs mobiles bloquent la lecture
+   automatique (écran noir) : on propose alors de toucher l'écran pour l'activer. */
+function attachRemoteStream(video, stream) {
+  video.srcObject = stream;
+  const p = video.play();
+  if (p && p.catch) {
+    p.catch(() => {
+      if (document.getElementById("tap-to-play")) return;
+      const b = document.createElement("button");
+      b.id = "tap-to-play";
+      b.className = "btn btn-primary shadow";
+      b.innerHTML = '<i class="bi bi-play-circle-fill me-1"></i> Toucher pour activer le son et la vidéo';
+      b.onclick = () => {
+        document.querySelectorAll("#videos-grid video").forEach((v) => v.play().catch(() => {}));
+        b.remove();
+      };
+      document.getElementById("meeting-page").appendChild(b);
+    });
+  }
+}
+
 /* Tuile de partage d'écran distante (séparée de la caméra) */
 function addRemoteScreenVideo(peerId, stream) {
   const tileId = `screen-tile-${peerId}`;
@@ -1070,7 +1119,7 @@ function addRemoteScreenVideo(peerId, stream) {
       <span>Écran de ${escapeHtml(name)}</span>
     </div>`;
   grid.appendChild(tile);
-  tile.querySelector("video").srcObject = stream;
+  attachRemoteStream(tile.querySelector("video"), stream);
 
   // Activer le mode présentation pour cet écran
   grid.classList.add("presenting");
@@ -1110,7 +1159,7 @@ function addRemoteVideo(peerId, stream) {
       <i class="bi bi-reception-4 net-ind" title="Qualité de connexion"></i>
     </div>`;
   grid.appendChild(tile);
-  tile.querySelector("video").srcObject = stream;
+  attachRemoteStream(tile.querySelector("video"), stream);
   updateParticipantsCount();
   onRemoteStreamAdded(peerId, stream, tile);
 }

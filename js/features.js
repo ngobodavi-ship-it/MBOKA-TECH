@@ -1068,6 +1068,7 @@ function updateRecBadge() {
 
 /* ---------- 9. Tuiles distantes ---------- */
 function onRemoteStreamAdded(peerId, stream) {
+  if (state.netStates?.[peerId]) setTileNetState(peerId, state.netStates[peerId]);
   Levels.attach(peerId, stream);
   const p = (state.allParticipants || []).find((x) => x.peerId === peerId);
   if (p) updateRemoteTileState(p);
