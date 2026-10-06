@@ -1815,13 +1815,10 @@ function humanizeAuthError(err) {
   const joinId = params.get("join");
   if (joinId) {
     state.pendingJoinMeetingId = joinId;
-    // Si non connecté : afficher le modal invité
-    // Si déjà connecté : enterApp() s'en chargera
-    setTimeout(() => {
-      if (!state.user && firebaseReady) {
-        showGuestModal(joinId);
-      }
-    }, 800);
+    // Conservé à part : pendingJoinMeetingId est effacé dès qu'on entre dans l'app
+    state.inviteMeetingId = joinId;
+    // Pas de minuterie ici : c'est onAuthStateChanged qui décide (modal invité si non connecté,
+    // sinon enterApp). Une minuterie ouvrait le modal avant que Firebase ait restauré la session.
   }
 })();
 
@@ -1854,7 +1851,7 @@ $("#guest-form").addEventListener("submit", async (e) => {
 
   // ★ Sauvegarder l'ID de la réunion AVANT toute opération
   // (sera utilisé directement après l'auth, pas via enterApp)
-  const targetMeetingId = state.pendingJoinMeetingId;
+  const targetMeetingId = state.pendingJoinMeetingId || state.inviteMeetingId;
   console.log("🎯 Réunion ciblée :", targetMeetingId);
 
   if (!targetMeetingId) {
@@ -2012,6 +2009,7 @@ $("#logout-btn").addEventListener("click", async () => {
    2. ENTRÉE DANS L'APP
    ========================================================== */
 function enterApp() {
+  bootstrap.Modal.getInstance($("#guestModal"))?.hide();
   $("#user-name-display").textContent = state.user.name;
   $("#user-email-display").textContent = state.user.email;
   $("#user-avatar").textContent = initials(state.user.name);
