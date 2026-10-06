@@ -1,7 +1,22 @@
 # MbokaTech — Connectez. Collaborez. Réussissez.
 
-Application de visioconférence avec compte rendu IA, en **un seul fichier** (`index.html`).
+Application de visioconférence avec assistant IA (transcription, enregistrement et compte rendu automatiques).
 Elle s'appuie sur Firebase (Auth, Firestore, Storage), PeerJS (WebRTC pair à pair) et Gemini.
+
+## Structure
+
+```
+index.html          pages et fenêtres (accueil, préparation, réunion)
+css/app.css         styles (thème clair / sombre)
+js/config.js        ⚙️ clés et services : Firebase, Gemini, OpenAI, relais vidéo TURN
+js/app.js           cœur : connexion, réunions, vidéo WebRTC, chat, transcription, compte rendu, exports
+js/features.js      préparation, arrière-plans, mises en page, sous-titres, sondages, tableau blanc, salles…
+js/assistant.js     automatisation IA, fin de réunion, présence, co-organisateurs, comptes rendus, accueil
+js/main.js          démarrage
+firestore.rules     règles de sécurité Firestore · storage.rules : règles Storage
+```
+
+Pour changer de projet Firebase ou ajouter un relais TURN, modifiez seulement `js/config.js`.
 
 ## Fonctionnalités
 
@@ -16,13 +31,18 @@ Elle s'appuie sur Firebase (Auth, Firestore, Storage), PeerJS (WebRTC pair à pa
 | Organisateur | Salle d'attente, verrouillage, autoriser ou non le chat, le partage, la réactivation des micros et l'enregistrement ; couper tous les micros, demander d'activer un micro, baisser toutes les mains, expulser, salles de sous-commission (minuteur, annonces), terminer pour tous |
 | Enregistrement | Vidéo de la réunion (mosaïque + audio de tous) téléchargée en `.webm`, badge visible par tous |
 | IA | Transcription en direct, sous-titres avec traduction (Gemini), compte rendu (résumé, décisions, actions, points clés) en PDF ou Word, assistant qui répond aux questions sur la réunion (rattrapage, actions, e-mail de suivi) |
+| Assistant automatique | Transcription lancée dès l'entrée de l'organisateur, enregistrement automatique (option), compte rendu rédigé par l'IA à la fin de la réunion, récapitulatif de fin (durée, participants, interventions) |
+| Comptes rendus | Espace « Comptes rendus » sur l'accueil : lecture, PDF, Word, e-mail de suivi prêt à envoyer, transcription complète |
+| Présence | Heure d'arrivée, de départ et durée par participant, export CSV (Excel) |
+| Rôles | Co-organisateurs nommés en cours de réunion (mêmes droits que l'organisateur) |
+| Accueil | Prochaine réunion avec compte à rebours, réunions organisées et rejointes, recherche |
 | Confort | Raccourcis clavier (`Ctrl+D`, `Ctrl+E`, Espace pour parler, `?`), mode sombre, préférences mémorisées |
 
 ## Données Firestore utilisées
 
 ```
 meetings/{id}                 titre, organisateur, settings{…}, notes, scheduledAt,
-                              transcriptionActive, recordingActive, spotlightPeerId,
+                              transcriptionActive, recordingActive, spotlightPeerId, coHostIds, attendeeIds,
                               breakout{active, rooms, assignments, endsAt, broadcast}, endedAt
 meetings/{id}/participants    présence (heartbeat), micro, caméra, main levée
 meetings/{id}/messages        chat (champ `to` pour les messages privés)
@@ -33,6 +53,7 @@ meetings/{id}/waiting         salle d'attente
 meetings/{id}/polls           sondages
 meetings/{id}/questions       questions-réponses
 meetings/{id}/whiteboard      traits du tableau blanc
+meetings/{id}/attendance      présence (arrivée, départ, durée)
 reports/{id}                  comptes rendus IA
 Storage : audio-recordings/, chat-files/
 ```
@@ -55,10 +76,13 @@ Sans ces règles, l'application affiche « Firebase refuse l'accès… ».
 - **Taille des réunions** : en pair à pair, chaque participant envoie son flux à tous les autres.
   Au-delà de 6 à 8 personnes, il faut un serveur média (SFU : LiveKit, mediasoup, Jitsi).
 - **Sous-titres et transcription** : ils reposent sur la reconnaissance vocale du navigateur (Chrome, Edge).
+- **Vidéo entre réseaux différents** (4G / Wi-Fi d'entreprise) : un relais TURN est nécessaire,
+  à renseigner dans `TURN_CONFIG` (`js/config.js`, compte gratuit chez Metered par exemple).
 - **Fonds virtuels** : sur un appareil trop lent, l'effet se désactive automatiquement.
 - **Notes partagées** : la dernière modification l'emporte. Deux personnes qui écrivent en même temps peuvent s'écraser.
 
 ## Déploiement
 
-Hébergez `index.html` et `logo-mbokatech.png` en HTTPS (GitHub Pages, Firebase Hosting, Netlify).
+Hébergez le dossier complet (`index.html`, `css/`, `js/`, `logo-mbokatech.png`) en HTTPS
+(GitHub Pages, Firebase Hosting, Netlify).
 La caméra et le micro ne fonctionnent pas en `file://`.
