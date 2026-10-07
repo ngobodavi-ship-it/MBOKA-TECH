@@ -411,8 +411,9 @@ function onMeetingsRendered(docs) {
   const now = Date.now();
   const upcoming = docs
     .map((d) => ({ id: d.id, ...d.data() }))
-    .filter((m) => tsOf(m.scheduledAt) > now - 15 * 60000)
-    .sort((a, b) => tsOf(a.scheduledAt) - tsOf(b.scheduledAt))[0];
+    .map((m) => ({ ...m, nextAt: nextOccurrence(tsOf(m.scheduledAt), m.recurrence) }))
+    .filter((m) => m.nextAt > now - 15 * 60000)
+    .sort((a, b) => a.nextAt - b.nextAt)[0];
   const box = $("#next-meeting");
   clearInterval(nextMeetingTimer);
   setTimeout(applyHomeSearch, 0);
@@ -422,7 +423,7 @@ function onMeetingsRendered(docs) {
     return;
   }
   const paint = () => {
-    const t = tsOf(upcoming.scheduledAt);
+    const t = upcoming.nextAt;
     const diff = t - Date.now();
     let when;
     if (diff <= 0) when = '<span class="badge bg-danger">En cours</span>';
