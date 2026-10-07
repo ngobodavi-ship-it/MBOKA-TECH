@@ -740,3 +740,53 @@ html, body {
 }
 .video-tile .tile-netstate.bad { background: rgba(192,57,43,0.85); }
 #tap-to-play { position: fixed; left: 50%; top: 45%; transform: translateX(-50%); z-index: 1500; }
+
+/* === VAGUE 4 : présence, discussions, appels === */
+.presence-dot {
+  position: absolute; right: -2px; bottom: -2px; width: 12px; height: 12px;
+  border-radius: 50%; border: 2px solid var(--bg-card); background: #9aa0a6;
+}
+.presence-dot.static { position: static; display: inline-block; vertical-align: middle; border-width: 0; width: 10px; height: 10px; }
+.presence-dot.available { background: #2ecc71; }
+.presence-dot.meeting { background: #e74c3c; }
+.presence-dot.busy { background: #e74c3c; }
+.presence-dot.dnd { background: #c0392b; box-shadow: inset 0 0 0 3px #c0392b, inset 0 0 0 5px #fff; }
+.presence-dot.away { background: #f1c40f; }
+.presence-dot.offline { background: #bdc3c7; }
+#presence-options .active { background: var(--primary-light); font-weight: 600; }
+
+.chat-layout { display: flex; height: min(65vh, 620px); min-height: 380px; }
+.chat-sidebar { width: 300px; border-right: 1px solid var(--border-soft); overflow-y: auto; flex-shrink: 0; }
+.chat-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.chat-main .chat-messages { flex: 1; }
+.conv-header {
+  display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid var(--border-soft); flex-shrink: 0;
+}
+.min-w-0 { min-width: 0; }
+.conv-item { padding: 0.65rem 0.8rem; }
+.conv-item.active { background: var(--primary-light); }
+.conv-item.unread .meeting-title { font-weight: 800; }
+.conv-item.unread .meeting-meta { color: var(--text-primary); font-weight: 600; }
+.conv-when { font-size: 0.68rem; color: var(--text-muted); white-space: nowrap; margin-left: 0.4rem; }
+.contact-row .avatar-circle, .conv-item .avatar-circle { width: 42px; height: 42px; }
+
+.call-avatar {
+  width: 96px; height: 96px; border-radius: 50%; margin: 0 auto;
+  background: linear-gradient(135deg, var(--primary), var(--teams-purple));
+  color: #fff; font-size: 2rem; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+}
+.call-avatar.ringing { animation: callPulse 1.4s infinite; }
+@keyframes callPulse {
+  0% { box-shadow: 0 0 0 0 rgba(13,110,253,0.55); }
+  70% { box-shadow: 0 0 0 22px rgba(13,110,253,0); }
+  100% { box-shadow: 0 0 0 0 rgba(13,110,253,0); }
+}
+
+@media (max-width: 768px) {
+  .chat-sidebar { width: 100%; border-right: none; }
+  .chat-main { display: none; }
+  .chat-layout.show-conv .chat-sidebar { display: none; }
+  .chat-layout.show-conv .chat-main { display: flex; }
+}

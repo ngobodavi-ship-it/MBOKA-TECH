@@ -9,6 +9,7 @@ service cloud.firestore {
       return request.auth != null; // inclut les invités (connexion anonyme)
     }
 
+    // Profils et statut de présence (annuaire des contacts)
     match /users/{uid} {
       allow read: if signedIn();
       allow write: if signedIn() && request.auth.uid == uid;
@@ -22,7 +23,7 @@ service cloud.firestore {
       allow delete: if signedIn() && resource.data.ownerId == request.auth.uid;
 
       // participants, messages, transcript, commands, reactions, waiting,
-      // polls, questions, whiteboard
+      // polls, questions, whiteboard, attendance
       match /{subcollection}/{docId} {
         allow read, write: if signedIn();
       }
@@ -32,6 +33,23 @@ service cloud.firestore {
       allow read: if signedIn();
       allow create: if signedIn() && request.resource.data.ownerId == request.auth.uid;
       allow update, delete: if signedIn() && resource.data.ownerId == request.auth.uid;
+    }
+
+    // Appels directs : visibles seulement par l'appelant et l'appelé
+    match /calls/{callId} {
+      allow read: if signedIn() && (resource.data.to == request.auth.uid || resource.data.from == request.auth.uid);
+      allow create: if signedIn() && request.resource.data.from == request.auth.uid;
+      allow update: if signedIn() && (resource.data.to == request.auth.uid || resource.data.from == request.auth.uid);
+    }
+
+    // Discussions permanentes : réservées à leurs membres
+    match /conversations/{convId} {
+      allow read, update: if signedIn() && request.auth.uid in resource.data.members;
+      allow create: if signedIn() && request.auth.uid in request.resource.data.members;
+      match /messages/{msgId} {
+        allow read, create: if signedIn() &&
+          request.auth.uid in get(/databases/$(database)/documents/conversations/$(convId)).data.members;
+      }
     }
   }
 }

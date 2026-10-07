@@ -975,10 +975,12 @@ function onMeetingEntered(meetingId) {
   if (state.isOrganizer) rt.updateMeeting(meetingId, { endedAt: rt.del() }).catch(() => {});
   applyMeetingPolicies();
   Assistant.onEntered(meetingId);
+  Presence.setInMeeting(true);
 }
 
 function runMeetingCleanups(opts = {}) {
   Assistant.onLeaving();
+  if (state.user) Presence.setInMeeting(false);
   (state.meetingCleanups || []).forEach((fn) => { try { fn(); } catch (_) {} });
   state.meetingCleanups = [];
   Levels.reset();
@@ -2395,11 +2397,11 @@ document.querySelectorAll(".ai-quick").forEach((b) => b.addEventListener("click"
 
 /* ---------- 24. Planification : agenda Google, fichier .ics ---------- */
 function scheduledBadge(data) {
-  const t = tsOf(data.scheduledAt);
+  const t = nextOccurrence(tsOf(data.scheduledAt), data.recurrence);
   if (!t) return "";
   const upcoming = t > Date.now() - 3600000;
   const txt = new Date(t).toLocaleString("fr-FR", { weekday: "short", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
-  return `<span class="badge ${upcoming ? "bg-primary-subtle text-primary" : "bg-secondary-subtle text-secondary"} ms-2"><i class="bi bi-calendar-event"></i> ${txt}</span>`;
+  return `<span class="badge ${upcoming ? "bg-primary-subtle text-primary" : "bg-secondary-subtle text-secondary"} ms-2"><i class="bi bi-calendar-event"></i> ${txt}${data.recurrence ? ` · <i class="bi bi-arrow-repeat"></i> ${RECURRENCE_LABELS[data.recurrence] || ""}` : ""}</span>`;
 }
 
 function icsDate(d) {
@@ -2411,11 +2413,12 @@ function showScheduledModal(m) {
   const end = new Date(start.getTime() + (m.durationMin || 60) * 60000);
   const details = `${m.description ? m.description + "\n\n" : ""}Rejoindre la réunion MbokaTech : ${link}`;
   $("#scheduled-title").textContent = m.title;
-  $("#scheduled-when").textContent = `${start.toLocaleString("fr-FR", { dateStyle: "full", timeStyle: "short" })} · ${m.durationMin} min`;
+  $("#scheduled-when").textContent = `${start.toLocaleString("fr-FR", { dateStyle: "full", timeStyle: "short" })} · ${m.durationMin} min${m.recurrence ? ` · se répète ${RECURRENCE_LABELS[m.recurrence]}` : ""}`;
   $("#scheduled-link").value = link;
   $("#scheduled-gcal").href = `https://calendar.google.com/calendar/render?action=TEMPLATE` +
     `&text=${encodeURIComponent(m.title)}&dates=${icsDate(start)}/${icsDate(end)}` +
-    `&details=${encodeURIComponent(details)}&location=${encodeURIComponent(link)}`;
+    `&details=${encodeURIComponent(details)}&location=${encodeURIComponent(link)}` +
+    (m.recurrence && RRULES[m.recurrence] ? `&recur=${encodeURIComponent("RRULE:" + RRULES[m.recurrence])}` : "");
   $("#scheduled-copy").onclick = () => copyText(`Réunion « ${m.title} » — ${$("#scheduled-when").textContent}\n${link}`, "Invitation copiée");
   $("#scheduled-ics").onclick = () => {
     const esc = (s) => String(s).replace(/([,;\\])/g, "\\$1").replace(/\n/g, "\\n");
@@ -2424,6 +2427,7 @@ function showScheduledModal(m) {
       "BEGIN:VEVENT",
       `UID:${m.id}@mbokatech`, `DTSTAMP:${icsDate(new Date())}`,
       `DTSTART:${icsDate(start)}`, `DTEND:${icsDate(end)}`,
+      ...(m.recurrence && RRULES[m.recurrence] ? [`RRULE:${RRULES[m.recurrence]}`] : []),
       `SUMMARY:${esc(m.title)}`, `DESCRIPTION:${esc(details)}`, `LOCATION:${esc(link)}`, `URL:${link}`,
       "BEGIN:VALARM", "TRIGGER:-PT10M", "ACTION:DISPLAY", "DESCRIPTION:Réunion dans 10 minutes", "END:VALARM",
       "END:VEVENT", "END:VCALENDAR",

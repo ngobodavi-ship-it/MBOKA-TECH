@@ -305,6 +305,7 @@ $("#register-form").addEventListener("submit", async (e) => {
 
 $("#logout-btn").addEventListener("click", async () => {
   if (state.currentMeetingId) leaveMeeting();
+  Collab.onLogout();
   if (firebaseReady) await auth.signOut();
   else { state.user = null; showPage("auth-page"); }
   showToast("Déconnecté");
@@ -322,6 +323,7 @@ function enterApp() {
   showPage("home-page");
   loadMeetings();
   Reports.load();
+  Collab.onEnterApp();
 
   // Si l'utilisateur arrive via un lien d'invitation, le rejoindre auto
   const pendingJoin = state.pendingJoinMeetingId;
@@ -381,7 +383,7 @@ function loadMeetings() {
 
 function renderMeetings(docs) {
   const now0 = Date.now();
-  const upcomingAt = (d) => { const t = tsOf(d.data().scheduledAt); return t > now0 - 3600000 ? t : 0; };
+  const upcomingAt = (d) => { const t = nextOccurrence(tsOf(d.data().scheduledAt), d.data().recurrence); return t > now0 - 3600000 ? t : 0; };
   docs = docs.filter((d) => !d.data().isBreakout)
     .map((d, i) => ({ d, i, up: upcomingAt(d) }))
     .sort((a, b) => (a.up && b.up ? a.up - b.up : (b.up ? 1 : 0) - (a.up ? 1 : 0)) || a.i - b.i)
@@ -603,7 +605,7 @@ $("#create-meeting-form").addEventListener("submit", async (e) => {
     let id;
     const extra = {
       description, settings,
-      ...(scheduledAt ? { scheduledAt, durationMin } : {}),
+      ...(scheduledAt ? { scheduledAt, durationMin, recurrence: $("#new-meeting-recurrence").value || null } : {}),
     };
     if (firebaseReady) {
       const ref = await db.collection("meetings").add({
@@ -631,7 +633,7 @@ $("#create-meeting-form").addEventListener("submit", async (e) => {
     bootstrap.Modal.getInstance($("#createMeetingModal")).hide();
     $("#create-meeting-form").reset();
     $("#schedule-fields").style.display = "none";
-    if (scheduledAt) showScheduledModal({ id, title, description, scheduledAt, durationMin });
+    if (scheduledAt) showScheduledModal({ id, title, description, scheduledAt, durationMin, recurrence: extra.recurrence });
     else joinMeeting(id, title);
   } catch (err) {
     console.error(err);

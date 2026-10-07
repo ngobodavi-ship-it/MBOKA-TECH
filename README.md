@@ -12,6 +12,8 @@ js/config.js        ⚙️ clés et services : Firebase, Gemini, OpenAI, relais 
 js/app.js           cœur : connexion, réunions, vidéo WebRTC, chat, transcription, compte rendu, exports
 js/features.js      préparation, arrière-plans, mises en page, sous-titres, sondages, tableau blanc, salles…
 js/assistant.js     automatisation IA, fin de réunion, présence, co-organisateurs, comptes rendus, accueil
+js/collab.js        statut de présence, contacts, appels directs, discussions, connexion Google, récurrence, PWA
+sw.js, manifest.webmanifest, icons/   application installable (téléphone, ordinateur)
 js/main.js          démarrage
 firestore.rules     règles de sécurité Firestore · storage.rules : règles Storage
 ```
@@ -36,6 +38,10 @@ Pour changer de projet Firebase ou ajouter un relais TURN, modifiez seulement `j
 | Présence | Heure d'arrivée, de départ et durée par participant, export CSV (Excel) |
 | Rôles | Co-organisateurs nommés en cours de réunion (mêmes droits que l'organisateur) |
 | Accueil | Prochaine réunion avec compte à rebours, réunions organisées et rejointes, recherche |
+| Communication (comme Teams) | Contacts avec statut (Disponible, En réunion, Occupé, Ne pas déranger, Absent), appels vidéo directs avec sonnerie (accepter / refuser), discussions permanentes 1:1 et en groupe avec non-lus, lancement d'une réunion depuis une discussion |
+| Compte | Connexion Google, mot de passe oublié, nom modifiable |
+| Agenda | Réunions récurrentes (quotidiennes, jours ouvrés, hebdomadaires, mensuelles) avec Google Agenda et `.ics` |
+| Application | Installable sur téléphone et ordinateur (PWA), notifications du navigateur pour les appels et messages |
 | Confort | Raccourcis clavier (`Ctrl+D`, `Ctrl+E`, Espace pour parler, `?`), mode sombre, préférences mémorisées |
 
 ## Données Firestore utilisées
@@ -54,6 +60,9 @@ meetings/{id}/polls           sondages
 meetings/{id}/questions       questions-réponses
 meetings/{id}/whiteboard      traits du tableau blanc
 meetings/{id}/attendance      présence (arrivée, départ, durée)
+users/{uid}                   profil et statut de présence
+calls/{id}                    appels directs (sonnerie, accepté, refusé, manqué)
+conversations/{id}/messages   discussions permanentes
 reports/{id}                  comptes rendus IA
 Storage : audio-recordings/, chat-files/
 ```
