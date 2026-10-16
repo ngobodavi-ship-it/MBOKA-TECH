@@ -1,0 +1,88 @@
+/* ---------- wallboard KPI (élément fort) ---------- */
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);background:var(--petrol);border-radius:14px;overflow:hidden;box-shadow:0 10px 30px -12px rgba(11,49,64,.55);
+  background-image:radial-gradient(120% 140% at 100% 0%,#14495E 0%,rgba(11,49,64,0) 55%)}
+.kpi{padding:20px 20px 18px;display:flex;flex-direction:column;gap:4px;min-height:168px;position:relative;color:#fff}
+.kpi+.kpi{border-left:1px solid rgba(255,255,255,.09)}
+.kpi .idx{display:none}
+.kpi .name{font-size:14px;font-weight:600;color:#fff;line-height:1.3}
+.kpi .rule{font-size:12px;color:#8FB0BC;line-height:1.35}
+.kpi .val{font-family:var(--disp);font-size:clamp(26px,2.25vw,38px);white-space:nowrap;font-weight:600;letter-spacing:-.01em;line-height:1;margin-top:auto;padding-top:14px;color:#fff}
+.kpi .val small{font-family:var(--body);font-size:13px;font-weight:500;color:#8FB0BC;margin-left:5px;letter-spacing:0}
+.kpi .foot{margin-top:10px;min-height:48px;align-content:flex-start;display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap}
+.delta{font-size:12.5px;font-weight:600;border-radius:20px;padding:2px 8px;white-space:nowrap}
+.delta.up{color:#5FD49B;background:rgba(52,199,130,.14)}
+.delta.down{color:#FF8F92;background:rgba(255,106,110,.14)}
+.delta.flat{color:#B5CBD3;background:rgba(255,255,255,.08)}
+.src{font-size:11.5px;color:#8FB0BC}
+.todo,.valid-b{font-size:11.5px;font-weight:500;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.todo::before,.valid-b::before{content:"";width:6px;height:6px;border-radius:50%;flex:none}
+.todo{color:var(--warn-ink)}.todo::before{background:var(--saffron)}
+.valid-b{color:var(--live)}.valid-b::before{background:var(--live)}
+.kpi .todo{color:#F2C47A}
+.kpi.locked{background:rgba(0,0,0,.14)}
+.kpi.locked .val,.kpi.locked .foot{display:none}
+.lockmsg{margin-top:auto;font-size:12.5px;color:#8FB0BC;display:flex;align-items:center;gap:7px;line-height:1.35}
+.lockmsg svg{stroke:#8FB0BC}
+
+/* ---------- panneaux ---------- */
+.grid2{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}
+.grid2b{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px 22px;box-shadow:var(--shadow);min-width:0}
+.panel h3{font-family:var(--disp);font-size:17px;font-weight:600;margin:0 0 2px;letter-spacing:0}
+.panel .cap{font-size:13px;color:var(--slate);margin:0 0 16px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:14px}
+.legend span{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--slate)}
+.legend i{width:10px;height:10px;border-radius:3px;display:block}
+
+/* ---------- tableaux ---------- */
+.tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+table{border-collapse:separate;border-spacing:0;width:100%;min-width:840px}
+th,td{padding:11px 14px;text-align:right;border-bottom:1px solid var(--row-line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--surface);z-index:1}
+thead th{font-size:12px;font-weight:600;color:var(--slate);background:var(--sunk);border-bottom:1px solid var(--line)}
+thead th:first-child{background:var(--sunk)}
+tbody td{font-size:13.5px}
+tbody td:first-child{font-weight:600}
+tbody tr:hover td{background:var(--row-hover)}
+tbody tr:last-child td{border-bottom:0}
+tfoot td{font-size:13.5px;font-weight:700;border-top:2px solid var(--petrol);border-bottom:0;background:var(--sunk)}
+tfoot td:first-child{background:var(--sunk)}
+.neg{color:var(--alert)}
+.mask{color:var(--mist)}
+.tbl-sm{min-width:0}
+.tbl-sm td,.tbl-sm th{white-space:normal}
+.tbl-sm tbody td:first-child{font-weight:500}
+
+/* ---------- vue Données ---------- */
+.drop{border:1.5px dashed var(--drop-line);border-radius:var(--radius);background:var(--drop-bg);padding:34px 20px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
+.drop::before{content:"";display:block;width:44px;height:44px;margin:0 auto 12px;border-radius:12px;background:var(--teal-soft) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='%230E8C8C' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3'/></svg>") center/22px no-repeat}
+.drop:hover,.drop.over{border-color:var(--teal);background:var(--teal-soft)}
+.drop .big{font-family:var(--disp);font-weight:600;font-size:18px;color:var(--ink)}
+.drop .small{font-size:13px;color:var(--slate);margin-top:6px;line-height:1.6}
+.datalist{font-size:13.5px;line-height:1.85;color:var(--slate)}
+.datalist b{color:var(--ink);font-weight:600}
+.report{margin-top:14px;font-size:13px;line-height:1.7}
+.report .ok{color:var(--live)}
+.report .ko{color:var(--alert)}
+.cols-note{font-size:12.5px;color:var(--slate);line-height:1.75;margin-top:16px;border-top:1px solid var(--line);padding-top:14px}
+.cols-note b{font-family:var(--body)!important;font-size:13px!important;letter-spacing:0!important;text-transform:none!important}
+.cols-note code{font-family:ui-monospace,"SFMono-Regular",Consolas,monospace;background:var(--sunk);border:1px solid var(--line);padding:0 5px;border-radius:4px;font-size:11.5px;color:var(--teal-ink)}
+
+/* ---------- vue Règles ---------- */
+.rules{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.rule-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;display:flex;flex-direction:column;gap:10px;position:relative;box-shadow:var(--shadow)}
+.rule-card .idx{display:none}
+.rule-card h4{font-family:var(--disp);font-size:18px;font-weight:600;margin:0}
+.rule-card .formula{font-size:13.5px;background:var(--sunk);border-radius:8px;border-left:3px solid var(--teal);padding:11px 13px;line-height:1.55;color:var(--ink)}
+.rule-card .meta{font-size:12.5px;color:var(--slate);line-height:1.6}
+.rule-card .badges{margin-top:auto;display:flex;gap:8px;flex-wrap:wrap}
+
+/* ---------- état vide ---------- */
+.empty{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:56px 24px;text-align:center;margin-top:24px;box-shadow:var(--shadow)}
+.empty .t{font-family:var(--disp);font-size:22px;font-weight:600}
+.empty .s{font-size:14px;color:var(--slate);margin:8px auto 22px;line-height:1.6;max-width:52ch}
+
+/* ---------- pied ---------- */
+.foot-note{margin-top:36px;border-top:1px solid var(--line);padding-top:18px;display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.foot-note div{font-size:12.5px;color:var(--slate);line-height:1.6}
+.foot-note b{display:block;color:var(--ink);font-size:13px;font-weight:600;margin-bottom:3px}

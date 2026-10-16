@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pilotage DFC × BPO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@500;600&display=swap" rel="stylesheet">
+
+<!-- Thème appliqué avant le premier rendu (évite le flash clair → sombre) -->
+<script src="js/theme-init.js"></script>
+
+<!-- Styles : l'ordre compte (variables → mise en page → composants → surcharges) -->
+<link rel="stylesheet" href="css/variables.css">
+<link rel="stylesheet" href="css/mise-en-page.css">
+<link rel="stylesheet" href="css/composants.css">
+<link rel="stylesheet" href="css/authentification.css">
+<link rel="stylesheet" href="css/theme-sombre.css">
+<link rel="stylesheet" href="css/wallboard.css">
+<link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+<div class="auth" id="authScreen" hidden>
+  <div class="auth-card frm">
+    <div class="auth-brand"><span class="gmc-mark" aria-hidden="true">M</span>Pilotage DFC × BPO</div>
+    <div class="auth-sub" id="authSub">Connexion</div>
+    <div id="authSetup" hidden>
+      <label for="suNom">Votre nom complet</label><input id="suNom" autocomplete="off">
+      <label for="suLogin">Identifiant administrateur</label><input id="suLogin" autocomplete="off">
+      <label for="suPwd">Mot de passe — 8 caractères minimum</label><input type="password" id="suPwd">
+      <label for="suPwd2">Confirmation</label><input type="password" id="suPwd2">
+    </div>
+    <div id="authLogin" hidden>
+      <label for="liLogin">Identifiant</label><input id="liLogin" autocomplete="username">
+      <label for="liPwd">Mot de passe</label><input type="password" id="liPwd" autocomplete="current-password">
+    </div>
+    <div id="authRecover" hidden>
+      <label for="rcCode">Code de récupération</label><input id="rcCode" autocomplete="off" placeholder="XXXX-XXXX-XXXX-XXXX" spellcheck="false">
+      <label for="rcLogin">Identifiant administrateur</label><input id="rcLogin" autocomplete="username">
+      <label for="rcPwd">Nouveau mot de passe — 8 caractères minimum</label><input type="password" id="rcPwd" autocomplete="new-password">
+      <label for="rcPwd2">Confirmation</label><input type="password" id="rcPwd2" autocomplete="new-password">
+    </div>
+    <div class="err" id="authErr"></div>
+    <button class="btn" id="authBtn">Se connecter</button>
+    <div class="hint" id="authHint"></div>
+    <button type="button" class="linkbtn" id="authReset" style="margin-top:12px">Administrateur : mot de passe oublié ?</button>
+    <button type="button" class="linkbtn" id="authRetour" style="margin-top:12px" hidden>Retour à la connexion</button>
+  </div>
+</div>
+
+<div class="modal" id="codeModal" hidden role="dialog" aria-labelledby="codeTitre">
+  <div class="auth-card">
+    <div class="auth-brand" id="codeTitre" style="font-size:19px">Code de récupération administrateur</div>
+    <div class="auth-sub">Notez ce code et rangez-le en lieu sûr (coffre, enveloppe scellée). Il ne sera plus jamais affiché.</div>
+    <div class="code-box" id="codeValeur"></div>
+    <div class="datalist" style="font-size:13px;line-height:1.6">Il permet de redéfinir le mot de passe d'un administrateur depuis l'écran de connexion, sans perdre les données. Il ne sert qu'une fois : un nouveau code est remis après chaque utilisation. Sans ce code, seul un autre administrateur peut réinitialiser un mot de passe.</div>
+    <div style="display:flex;gap:8px;margin-top:18px;flex-wrap:wrap">
+      <button class="btn ghost" id="codeCopier">Copier le code</button>
+      <button class="btn" id="codeOk" style="flex:1;justify-content:center">J'ai noté le code</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="pwdModal" hidden>
+  <div class="auth-card frm">
+    <div class="auth-brand" style="font-size:16px">Changer le mot de passe</div>
+    <div class="auth-sub" id="pwdSub"></div>
+    <label for="pwdOld">Mot de passe actuel</label><input type="password" id="pwdOld">
+    <label for="pwdNew">Nouveau mot de passe — 8 caractères minimum</label><input type="password" id="pwdNew">
+    <label for="pwdNew2">Confirmation</label><input type="password" id="pwdNew2">
+    <div class="err" id="pwdErr"></div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn" id="pwdSave" style="flex:1;justify-content:center;width:auto;margin-top:0">Enregistrer</button>
+      <button class="btn ghost" id="pwdCancel" style="justify-content:center;width:auto;margin-top:0">Plus tard</button>
+    </div>
+  </div>
+</div>
+
+<div class="shell">
+<aside class="side">
+  <div class="brand">
+    <span class="gmc-mark" aria-hidden="true">M</span>
+    <div class="brand-txt">
+      <h1>Pilotage DFC × BPO</h1>
+      <span class="sub">Groupe Média Contact</span>
+    </div>
+  </div>
+  <nav class="nav" aria-label="Navigation principale">
+    <div class="nav-in" id="mainNav">
+      <button data-v="dash" aria-pressed="true"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13h4v8H3zM10 3h4v18h-4zM17 9h4v12h-4z"/></svg><span>Tableau de bord</span></button>
+      <button data-v="data" aria-pressed="false"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg><span>Données</span></button>
+      <button data-v="rules" aria-pressed="false"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h14v18H5zM9 8h6M9 12h6M9 16h3"/></svg><span>Règles de calcul</span></button>
+      <button data-v="users" aria-pressed="false" id="navUsers" hidden><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.3-5.5 6.5-5.5s5.7 1.9 6.5 5.5M16 4.8a3.5 3.5 0 010 6.4M18.5 14.8c1.6.8 2.6 2.5 3 5.2"/></svg><span>Utilisateurs</span></button>
+      <button data-v="audit" aria-pressed="false" id="navAudit" hidden><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.6-3.4 8-8 9-4.6-1-8-4.4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg><span>Audit</span></button>
+    </div>
+  </nav>
+  <div class="side-foot">
+    <div class="side-meta"><span class="src-tag" id="srcTag">…</span><span class="count" id="navCount"></span></div>
+    <div class="side-meta"><button type="button" class="theme-btn" id="btnTheme" aria-label="Changer de thème"></button></div>
+    <div class="userbar" id="userArea"></div>
+  </div>
+</aside>
+<div class="main">
+
+<!-- ============================ VUE TABLEAU DE BORD ============================ -->
+<section class="view on" id="view-dash">
+
+<div class="pagehead">
+  <div class="pagehead-txt">
+    <h2>Tableau de bord</h2>
+    <div class="context" id="context">Chargement…</div>
+  </div>
+    <div class="acts">
+      <button class="btn" id="btnWall" title="Affichage plein écran pour un écran du plateau">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="2.5" width="13" height="9" rx="1.2"/><path d="M5.5 14.5h5M8 11.5v3"/></svg>
+        Wallboard
+      </button>
+      <button class="btn" id="btnCsv">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 1v9M4.5 6.5L8 10l3.5-3.5M2 13.5h12"/></svg>
+        Excel
+      </button>
+      <button class="btn" id="btnPdf">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 6V2h8v4M4 12H2V7h12v5h-2M4 10h8v4H4z"/></svg>
+        PDF
+      </button>
+    </div>
+</div>
+
+<div class="filters">
+  <div class="filters-in">
+    <div class="field">
+      <label id="lblFreq">Fréquence de restitution</label>
+      <div class="tabs" id="segFreq" role="group" aria-labelledby="lblFreq">
+        <button data-f="hebdo" aria-pressed="true">Hebdomadaire</button>
+        <button data-f="mensuel" aria-pressed="false">Mensuel</button>
+      </div>
+    </div>
+    <div class="field">
+      <label id="lblNiv">Niveau d'analyse</label>
+      <div class="tabs" id="segNiveau" role="group" aria-labelledby="lblNiv">
+        <button data-n="groupe" aria-pressed="true">Groupe</button>
+        <button data-n="filiale" aria-pressed="false">Filiale</button>
+        <button data-n="activite" aria-pressed="false">Activité</button>
+      </div>
+    </div>
+    <div class="field">
+      <label for="selFiliale">Filiale</label>
+      <select id="selFiliale"></select>
+    </div>
+    <div class="field">
+      <label for="selActivite">Activité</label>
+      <select id="selActivite"></select>
+    </div>
+  </div>
+</div>
+
+<main class="wrap">
+  <div class="empty" id="emptyState" style="display:none">
+    <div class="t">Aucune donnée pour cette sélection</div>
+    <div class="s" id="emptyMsg">Importez les extractions Hermès / WFM / Finance depuis l'onglet Données.</div>
+    <button class="btn" id="btnGoData">Aller aux données</button>
+  </div>
+
+  <div id="dashContent">
+    <div class="section-head">
+      <h2>Les 6 KPI validés DFC-BPO</h2>
+      <span class="note" id="kpiNote"></span>
+    </div>
+    <div class="kpis" id="kpis"></div>
+
+    <div class="section-head">
+      <h2>Analyse</h2>
+      <span class="note" id="anaNote"></span>
+    </div>
+    <div class="grid2">
+      <div class="panel">
+        <h3 id="chart1Title">Durée moyenne de traitement</h3>
+        <p class="cap" id="chart1Cap"></p>
+        <div id="chart1"></div>
+      </div>
+      <div class="panel">
+        <h3>Décomposition du temps agent</h3>
+        <p class="cap" id="chart2Cap"></p>
+        <div id="chart2"></div>
+        <div class="legend" id="chart2Legend">
+          <span><i style="background:#0E8C8C"></i>Conversation</span>
+          <span><i style="background:#8CC7D9"></i>Attente</span>
+          <span><i style="background:#5163C9"></i>Post-appel</span>
+          <span><i style="background:var(--chart-pause)"></i>Pause</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="height:16px"></div>
+
+    <div class="grid2b">
+      <div class="panel" id="panelRenta">
+        <h3>CA horaire vs coût horaire direct</h3>
+        <p class="cap" id="rentaCap"></p>
+        <div id="chart3"></div>
+        <div class="legend">
+          <span><i style="background:#0E8C8C"></i>CA horaire</span>
+          <span><i style="background:#E9A23B"></i>Coût horaire (masse salariale directe)</span>
+        </div>
+      </div>
+      <div class="panel">
+        <h3 id="trendTitle">Tendance</h3>
+        <p class="cap" id="trendCap"></p>
+        <div id="chart4"></div>
+        <div class="legend" id="trendLegend"></div>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <h2>Détail</h2>
+      <span class="note" id="tblNote"></span>
+    </div>
+    <div class="tablewrap">
+      <table id="tbl">
+        <thead><tr id="thead"></tr></thead>
+        <tbody id="tbody"></tbody>
+        <tfoot><tr id="tfoot"></tr></tfoot>
+      </table>
+    </div>
+
+    <div class="foot-note">
+      <div><b>Sources</b>Production : imports contrôlés (Hermès · WFM · Finance/RH via extractions). Connecteurs directs : à brancher — voir l'onglet Données.</div>
+      <div><b>Niveaux d'accès</b>BPO : opérationnel · DFC : financier + import · Direction : consultation · Administrateur : comptes, audit, sauvegarde. <span class="si-autonome">Version autonome : protection côté navigateur uniquement.</span><span class="si-serveur">Droits appliqués par le serveur.</span></div>
+      <div><b>Données</b><span class="si-autonome">Version autonome : comptes et données vivent dans le navigateur de CE poste (pensez aux sauvegardes JSON).</span><span class="si-serveur">Base centrale partagée par tous les postes, sauvegardée côté serveur.</span> Aucune donnée simulée : seuls les imports contrôlés alimentent les tableaux.</div>
+      <div><b>Version</b><span class="si-autonome">v0.4 autonome — sans serveur. Pour le multi-postes, la base centrale et la sécurité serveur : passez en mode serveur (voir docs/API.md).</span><span class="si-serveur">v0.4 client / serveur — base centrale multi-postes.</span></div>
+    </div>
+  </div>
+</main>
+</section>
+
+<!-- ============================ VUE DONNÉES ============================ -->
+<section class="view" id="view-data">
+<main class="wrap">
+  <div class="section-head">
+    <h2>Données de production</h2>
+    <span class="note">Base centrale — extractions hebdomadaires et mensuelles</span>
+  </div>
+
+  <div class="grid2">
+    <div class="panel" id="importPanel">
+      <h3>Importer une extraction</h3>
+      <p class="cap">CSV (séparateur ; ou ,) ou Excel (.xlsx) — lecture, contrôle, prévisualisation, puis confirmation</p>
+      <div class="drop" id="drop" role="button" tabindex="0" aria-label="Importer un fichier">
+        <div class="big">Déposez un fichier ici</div>
+        <div class="small">ou cliquez pour choisir un fichier<br>Extractions Hermès brutes : déposez ensemble « Production par agent » et « Rapport détaillé par agent » (.xls)<br>Rien n'est enregistré avant votre confirmation</div>
+      </div>
+      <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" multiple style="display:none">
+      <div id="wizZone"></div>
+      <div class="cols-note">
+        <b style="font-family:var(--disp);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink)">Colonnes attendues</b><br>
+        Obligatoires : <code>type_periode</code> (hebdo | mensuel) · <code>periode</code> (2026-S33 ou 2026-07) · <code>filiale</code> · <code>activite</code> · <code>agents</code> · <code>heures_loguees</code> · <code>heures_productives</code><br>
+        Volumes : <code>appels_traites</code> et/ou <code>fiches_traitees</code> · <code>dmt_sec</code> (dérivée si absente)<br>
+        Finance : <code>ca_facture</code> · <code>masse_salariale</code> (FCFA) — Optionnelles : <code>t_comm_h</code> · <code>t_attente_h</code> · <code>t_acw_h</code>
+      </div>
+      <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="btnModele">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 1v9M4.5 6.5L8 10l3.5-3.5M2 13.5h12"/></svg>
+          Modèle Excel à remplir
+        </button>
+        <button class="btn ghost" id="btnGuide">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 6V2h8v4M4 12H2V7h12v5h-2M4 10h8v4H4z"/></svg>
+          Guide de remplissage (PDF)
+        </button>
+        <button class="btn ghost" id="btnGabarit">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 1v9M4.5 6.5L8 10l3.5-3.5M2 13.5h12"/></svg>
+          Gabarit CSV
+        </button>
+      </div>
+    </div>
+
+    <div class="panel" id="importLocked" style="display:none">
+      <h3>Importer une extraction</h3>
+      <p class="cap">Réservé aux profils Administrateur et DFC</p>
+      <div class="datalist">Votre compte permet de consulter les tableaux de bord, pas de modifier les données.<br><br>Rapprochez-vous d'un administrateur ou de la DFC pour charger ou corriger les extractions.</div>
+    </div>
+
+    <div class="panel">
+      <h3>État des données</h3>
+      <p class="cap">Ce que la base centrale contient actuellement</p>
+      <div class="datalist" id="dataSummary">Chargement…</div>
+      <h4 class="mini">Sources connectées</h4>
+      <div class="datalist" id="connecteursListe">—</div>
+      <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn danger" id="btnArchiverTout" style="display:none">Archiver toutes les données</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-head">
+    <h2>Journal des imports</h2>
+    <span class="note" id="logNote"></span>
+  </div>
+  <div class="tablewrap">
+    <table class="tbl-sm">
+      <thead><tr><th style="text-align:left">Date</th><th style="text-align:left">Utilisateur</th><th style="text-align:left">Fichier</th><th>Intégrées</th><th>Remplacées</th><th>Rejetées</th><th style="text-align:left">Statut</th></tr></thead>
+      <tbody id="logBody"></tbody>
+    </table>
+  </div>
+
+  <div id="corbSection" style="display:none">
+    <div class="section-head">
+      <h2>Corbeille</h2>
+      <span class="note" id="corbNote">Données archivées — restaurables ; suppression définitive réservée à l'administrateur</span>
+    </div>
+    <div class="tablewrap">
+      <table class="tbl-sm">
+        <thead><tr><th style="text-align:left">Clé</th><th>Agents</th><th>H. loguées</th><th>Volume</th><th>Archivée le</th><th style="text-align:left">Par</th><th style="text-align:left">Actions</th></tr></thead>
+        <tbody id="corbBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="sauvSection" style="display:none">
+    <div class="section-head">
+      <h2>Sauvegarde &amp; restauration</h2>
+      <span class="note">Export logique complet — administrateur uniquement</span>
+    </div>
+    <div class="grid2b">
+      <div class="panel">
+        <h3>Sauvegarder</h3>
+        <p class="cap">Télécharge un fichier JSON : comptes, données, journaux, audit</p>
+        <button class="btn" id="btnSauvegarde">Télécharger une sauvegarde</button>
+        <div class="cols-note">Recommandation : planifiez cette sauvegarde (ou une copie du fichier de base) chaque nuit — conservez le fichier JSON hors de ce poste.</div>
+      </div>
+      <div class="panel frm">
+        <h3>Restaurer</h3>
+        <p class="cap">Remplace TOUT le contenu actuel par celui de la sauvegarde — opération tracée</p>
+        <label for="restFile">Fichier de sauvegarde (.json)</label>
+        <input type="file" id="restFile" accept=".json">
+        <label for="restConfirm">Tapez RESTAURER pour confirmer</label>
+        <input id="restConfirm" autocomplete="off">
+        <div class="err" id="restErr"></div>
+        <button class="btn danger" id="btnRestaurer" style="margin-top:10px">Restaurer la sauvegarde</button>
+      </div>
+    </div>
+    <div class="panel frm" style="margin-top:16px;border-color:var(--alert)">
+      <h3 style="color:var(--alert)">Vider entièrement la base</h3>
+      <p class="cap">Supprime définitivement toutes les données, tous les journaux (imports, audit) et tous les comptes sauf le vôtre — opération irréversible, sans passage par la corbeille</p>
+      <div class="cols-note">Téléchargez une sauvegarde avant de continuer si vous souhaitez pouvoir revenir en arrière.</div>
+      <label for="viderConfirm">Tapez VIDER pour confirmer</label>
+      <input id="viderConfirm" autocomplete="off">
+      <div class="err" id="viderErr"></div>
+      <button class="btn danger" id="btnVider" style="margin-top:10px">Vider toute la base</button>
+    </div>
+  </div>
+</main>
+</section>
+
+<!-- ============================ VUE RÈGLES ============================ -->
+<section class="view" id="view-rules">
+<main class="wrap">
+  <div class="section-head">
+    <h2>Règles de calcul des 6 KPI</h2>
+    <span class="note">2 règles validées · 4 propositions à valider par la DFC</span>
+  </div>
+  <div class="rules" id="rulesGrid"></div>
+
+  <div class="section-head">
+    <h2>Conventions d'agrégation</h2>
+    <span class="note">appliquées à tous les niveaux (groupe, filiale, activité)</span>
+  </div>
+  <div class="grid2b">
+    <div class="panel">
+      <h3>Agrégats</h3>
+      <p class="cap">Comment les lignes sont consolidées</p>
+      <div class="datalist">
+        <b>DMT consolidée</b> — moyenne pondérée par le nombre d'appels traités (jamais une moyenne simple des DMT).<br>
+        <b>Taux d'occupation</b> — Σ heures productives / Σ heures loguées (totaux consolidés).<br>
+        <b>Appels / h</b> — Σ appels traités / Σ heures productives des activités d'appels (le Back Office est exclu du dénominateur).<br>
+        <b>CA horaire &amp; coût horaire</b> — Σ CA / Σ heures productives · Σ masse salariale / Σ heures productives.<br>
+        <b>Marge directe</b> — CA facturé − masse salariale directe ; taux de marge = marge / CA.
+      </div>
+    </div>
+    <div class="panel">
+      <h3>Variations affichées</h3>
+      <p class="cap">Les deltas des cartes KPI</p>
+      <div class="datalist">
+        Chaque KPI est comparé à la <b>période précédente de même type</b> (semaine N−1, mois M−1).<br>
+        Une variation inférieure à 0,4 % est affichée comme stable (—).<br>
+        Le sens favorable dépend du KPI : une DMT ou une masse salariale qui baisse est <b style="color:var(--live)">verte</b>, un volume ou un CA qui baisse est <b style="color:var(--alert)">rouge</b>.
+      </div>
+    </div>
+  </div>
+</main>
+</section>
+
+<!-- ============================ VUE UTILISATEURS ============================ -->
+<section class="view" id="view-users">
+<main class="wrap">
+  <div class="section-head">
+    <h2>Comptes et accès</h2>
+    <span class="note">Gestion réservée au profil Administrateur — chaque action est tracée dans l'audit</span>
+  </div>
+  <div class="grid2">
+    <div class="panel frm">
+      <h3>Créer un compte</h3>
+      <p class="cap">Un mot de passe provisoire est généré et affiché une seule fois — transmettez-le à l'utilisateur</p>
+      <div class="form-grid">
+        <div><label for="nuNom">Nom complet</label><input id="nuNom" autocomplete="off"></div>
+        <div><label for="nuLogin">Identifiant</label><input id="nuLogin" autocomplete="off"></div>
+      </div>
+      <div class="form-grid">
+        <div><label for="nuRole">Rôle</label>
+          <select id="nuRole">
+            <option value="CONTRIBUTEUR">Contributeur — import, sans données financières</option>
+            <option value="BPO">BPO — indicateurs opérationnels</option>
+            <option value="DFC">DFC — financier + import des données</option>
+            <option value="DIRECTION">Direction — consultation de tous les indicateurs</option>
+            <option value="ADMIN">Administrateur — comptes + données + audit</option>
+          </select></div>
+        <div><label for="nuFiliale">Périmètre d'import</label>
+          <input id="nuFiliale" list="nuFilList" placeholder="Groupe — toutes les filiales" autocomplete="off"><datalist id="nuFilList"></datalist></div>
+      </div>
+      <div class="err" id="nuErr"></div>
+      <button class="btn" id="btnCreateUser">Créer le compte</button>
+      <div class="report" id="nuReport"></div>
+    </div>
+    <div class="panel">
+      <h3>Portée des rôles</h3>
+      <p class="cap"><span class="si-autonome">Contrôlée par l'application sur ce poste (version autonome)</span><span class="si-serveur">Contrôlée par le serveur à chaque requête</span></p>
+      <div class="datalist">
+        <b>Contributeur</b> — importe les extractions de son périmètre et consulte tout le groupe ; ne voit ni CA, ni masse salariale, ni marge.<br>
+        <b>BPO</b> — tableaux de bord opérationnels, consultation ; pas de données financières.<br>
+        <b>Direction</b> — tous les indicateurs, consultation seule : aucun import, aucune modification.<br>
+        <b>DFC</b> — tous les indicateurs + import, corrections et corbeille.<br>
+        <b>Administrateur</b> — DFC + comptes, audit, sauvegarde/restauration, purge définitive. Toujours en périmètre Groupe.<br><br>
+        <b>Périmètre d'import</b> — tout le monde consulte toutes les filiales. Le périmètre limite uniquement l'import : un compte rattaché à une filiale ne peut importer, corriger ou restaurer que les données de cette filiale ; « Groupe » importe pour toutes.
+      </div>
+      <div class="cols-note">Les comptes sont désactivés, jamais supprimés : l'historique d'audit reste intègre. Une désactivation coupe immédiatement les sessions du compte.</div>
+      <h4 class="mini">Code de récupération administrateur</h4>
+      <div class="recup-etat" id="recupEtat">—</div>
+      <button class="btn ghost" id="btnNouveauCode">Générer un nouveau code</button>
+    </div>
+  </div>
+  <div class="section-head">
+    <h2>Comptes existants</h2>
+    <span class="note" id="usersNote"></span>
+  </div>
+  <div class="tablewrap">
+    <table class="tbl-sm">
+      <thead><tr><th style="text-align:left">Nom</th><th style="text-align:left">Identifiant</th><th style="text-align:left">Rôle</th><th style="text-align:left">Périmètre d'import</th><th>Statut</th><th>Créé le</th><th>Dernière connexion</th><th style="text-align:left">Actions</th></tr></thead>
+      <tbody id="usersBody"></tbody>
+    </table>
+  </div>
+</main>
+</section>
+
+<!-- ============================ VUE AUDIT ============================ -->
+<section class="view" id="view-audit">
+<main class="wrap">
+  <div class="section-head">
+    <h2>Journal d'audit</h2>
+    <span class="note" id="auditNote"></span>
+  </div>
+  <div style="margin-bottom:10px">
+    <button class="btn ghost" id="btnAuditRafraichir">Rafraîchir</button>
+  </div>
+  <div class="tablewrap">
+    <table class="tbl-sm">
+      <thead><tr><th style="text-align:left">Date</th><th style="text-align:left">Utilisateur</th><th style="text-align:left">Action</th><th style="text-align:left">Objet</th><th style="text-align:left">Ancienne valeur</th><th style="text-align:left">Nouvelle valeur</th></tr></thead>
+      <tbody id="auditBody"></tbody>
+    </table>
+  </div>
+</main>
+</section>
+
+</div><!-- /main -->
+</div><!-- /shell -->
+
+<div class="wb" id="wallboard" hidden role="dialog" aria-label="Wallboard plein écran">
+  <div class="wb-top">
+    <div class="wb-brand"><span class="gmc-mark" aria-hidden="true">M</span><div><div class="wb-t">Pilotage DFC × BPO</div><div class="wb-s" id="wbScope"></div></div></div>
+    <div class="wb-per" id="wbPeriode"></div>
+    <div class="wb-right"><div class="wb-clock" id="wbClock"></div><button class="wb-close" id="wbClose">Quitter (Échap)</button></div>
+  </div>
+  <div class="wb-kpis" id="wbKpis"></div>
+  <div class="wb-board">
+    <div class="wb-board-h"><span id="wbBoardTitle">Par filiale</span><span class="wb-maj" id="wbMaj"></span></div>
+    <div id="wbRows"></div>
+  </div>
+</div>
+
+<!-- =====================================================================
+     Scripts — scripts classiques (pas de bundler), chargés dans cet ordre.
+     Ils partagent la portée globale : ne pas réordonner sans vérifier les
+     dépendances (voir docs/ARCHITECTURE.md).
+     ===================================================================== -->
+<!-- 1. Configuration (mode autonome / serveur) -->
+<script src="js/config.js"></script>
+<!-- 2. Bibliothèques -->
+<script src="js/vendor/xlsx.full.min.js"></script>
+<script src="js/lib/graphiques.js"></script>
+<script src="js/lib/api.js"></script>
+<script src="js/lib/telechargement.js"></script>
+<!-- 3. Règles métier partagées avec le serveur, puis moteur local (inactif en mode serveur) -->
+<script src="js/partage/regles-metier.js"></script>
+<script src="js/moteur-local/moteur-local.js"></script>
+<!-- 4. Application -->
+<script src="js/app/etat.js"></script>
+<script src="js/app/donnees.js"></script>
+<script src="js/app/csv.js"></script>
+<script src="js/app/vue-tableau-de-bord.js"></script>
+<script src="js/app/vue-regles.js"></script>
+<script src="js/app/navigation.js"></script>
+<script src="js/app/vue-donnees.js"></script>
+<script src="js/app/import-extractions-brutes.js"></script>
+<script src="js/app/import-modele-excel.js"></script>
+<script src="js/app/import-assistant.js"></script>
+<script src="js/app/vue-utilisateurs.js"></script>
+<script src="js/app/vue-audit.js"></script>
+<script src="js/app/authentification.js"></script>
+<script src="js/app/controles.js"></script>
+<script src="js/app/wallboard.js"></script>
+<script src="js/app/demarrage.js"></script>
+</body>
+</html>

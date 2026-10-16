@@ -1,0 +1,32 @@
+/* =====================================================================
+   Pilotage DFC × BPO — thème « wallboard »
+   Pétrole (structure) · sarcelle (production, CA) · safran (coûts)
+   Rouge GMC réservé à la marque et aux alertes.
+   ===================================================================== */
+:root{
+  --petrol:#0B3140; --petrol-2:#123F51; --petrol-3:#1C5168; --petrol-line:#245A70;
+  --canvas:#EDF1F3; --surface:#FFFFFF; --sunk:#F5F8F9;
+  --ink:#10232C; --slate:#56707B; --faint:#8EA3AC; --line:#DCE4E8; --mist:#C3D0D6;
+  --teal:#0E8C8C; --teal-soft:#E1F2F1; --saffron:#E9A23B; --saffron-soft:#FCF1DF;
+  --indigo:#5163C9; --sky:#8CC7D9;
+  --live:#178A55; --good-soft:#E3F3EA; --signal:#E9A23B; --alert:#D7262E; --alert-soft:#FBE9EA; --brand:#E20917;
+  --radius:10px; --radius-sm:6px; --gut:28px; --side:248px;
+  --disp:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --shadow:0 1px 2px rgba(11,49,64,.06),0 4px 16px rgba(11,49,64,.05);
+  --filters-bg:rgba(237,241,243,.92); --field:#FFFFFF; --seg:#DDE5E9; --seg-on:#FFFFFF; --seg-on-ink:#0B3140;
+  --btn:#0B3140; --btn-hover:#1C5168; --row-line:#EAF0F2; --row-hover:#F3F8F8;
+  --drop-line:#A9C4CC; --drop-bg:linear-gradient(180deg,#F7FBFB,#EFF6F6);
+  --warn-ink:#8A5A10; --warn-line:#F1D3A1; --good-ink:#11683F; --good-line:#BFE3CF; --alert-line:#EDB7BA;
+  --violet-soft:#EEEAF8; --violet-ink:#5B44A6; --teal-ink:#0A6B6B; --sky-soft:#E5F1F7; --sky-ink:#2A6680;
+  --chart-ink:#10232C; --chart-muted:#56707B; --chart-faint:#8EA3AC; --chart-track:#EEF3F5; --chart-grid:#EAF0F2;
+  --chart-a:#0B3140; --chart-pause:#D5DEE2;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;padding:0}
+body{background:var(--canvas);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px;border-radius:4px}
+button,input,select{font:inherit}
