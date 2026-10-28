@@ -3,3 +3,4 @@ peer/
 shots/
 *.log
 firestore.rules
+run.out
