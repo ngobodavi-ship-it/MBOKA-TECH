@@ -6,20 +6,38 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     function signedIn() {
-      return request.auth != null; // inclut les invités (connexion anonyme)
+      return request.auth != null; // comptes et invités (connexion anonyme)
+    }
+    function isAccount() {
+      // Un vrai compte (e-mail, Google…), pas un invité anonyme
+      return signedIn() && request.auth.token.firebase.sign_in_provider != 'anonymous';
     }
 
-    // Profils et statut de présence (annuaire des contacts)
+    // Annuaire (contacts, statut) : réservé aux comptes, chacun ne modifie que son profil.
+    // Les invités peuvent seulement écrire leur propre fiche (nom affiché).
     match /users/{uid} {
-      allow read: if signedIn();
+      allow read: if isAccount();
       allow write: if signedIn() && request.auth.uid == uid;
     }
 
     match /meetings/{meetingId} {
-      allow read: if signedIn();
+      function isHost() {
+        return request.auth.uid == resource.data.ownerId
+          || request.auth.uid in resource.data.get('coHostIds', []);
+      }
+      // Lecture d'une réunion par son identifiant (= le lien d'invitation)…
+      allow get: if signedIn();
+      // …mais impossible de lister les réunions des autres
+      allow list: if signedIn() && (resource.data.ownerId == request.auth.uid
+        || request.auth.uid in resource.data.get('attendeeIds', []));
       allow create: if signedIn() && request.resource.data.ownerId == request.auth.uid;
-      // Les participants mettent à jour le partage d'écran, les notes, l'enregistrement…
-      allow update: if signedIn();
+      // L'organisateur et les co-organisateurs modifient tout (sauf le propriétaire) ;
+      // les participants seulement le partage d'écran, les notes, l'enregistrement et leur présence
+      allow update: if signedIn()
+        && request.resource.data.ownerId == resource.data.ownerId
+        && (isHost() || request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['presenterId', 'notes', 'notesBy', 'recordingActive', 'recordingBy', 'attendeeIds',
+                       'lastAudioUrl', 'lastAudioPath', 'lastAudioAt']));
       allow delete: if signedIn() && resource.data.ownerId == request.auth.uid;
 
       // participants, messages, transcript, commands, reactions, waiting,
@@ -29,8 +47,9 @@ service cloud.firestore {
       }
     }
 
+    // Comptes rendus : visibles et modifiables par leur auteur uniquement
     match /reports/{reportId} {
-      allow read: if signedIn();
+      allow read: if signedIn() && resource.data.ownerId == request.auth.uid;
       allow create: if signedIn() && request.resource.data.ownerId == request.auth.uid;
       allow update, delete: if signedIn() && resource.data.ownerId == request.auth.uid;
     }
@@ -38,14 +57,14 @@ service cloud.firestore {
     // Appels directs : visibles seulement par l'appelant et l'appelé
     match /calls/{callId} {
       allow read: if signedIn() && (resource.data.to == request.auth.uid || resource.data.from == request.auth.uid);
-      allow create: if signedIn() && request.resource.data.from == request.auth.uid;
+      allow create: if isAccount() && request.resource.data.from == request.auth.uid;
       allow update: if signedIn() && (resource.data.to == request.auth.uid || resource.data.from == request.auth.uid);
     }
 
     // Discussions permanentes : réservées à leurs membres
     match /conversations/{convId} {
       allow read, update: if signedIn() && request.auth.uid in resource.data.members;
-      allow create: if signedIn() && request.auth.uid in request.resource.data.members;
+      allow create: if isAccount() && request.auth.uid in request.resource.data.members;
       match /messages/{msgId} {
         allow read, create: if signedIn() &&
           request.auth.uid in get(/databases/$(database)/documents/conversations/$(convId)).data.members;

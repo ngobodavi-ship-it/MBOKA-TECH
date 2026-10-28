@@ -77,6 +77,25 @@ Storage : audio-recordings/, chat-files/
 
 Sans ces règles, l'application affiche « Firebase refuse l'accès… ».
 
+## Tests automatiques
+
+Le dossier `tests/` contient des tests de bout en bout sur de **vrais appels** entre navigateurs
+(Chromium avec caméra et micro simulés), sur des émulateurs Firebase qui appliquent les vraies
+règles `firestore.rules`, et sur un serveur PeerJS local. Aucune donnée réelle n'est touchée.
+
+```bash
+cd tests && npm test      # prérequis : Node 20+, Java 17+
+```
+
+- **Scénario 1** (`e2e1.js`) : appel à 2 puis à 3 participants. Le test mesure l'image et le niveau
+  sonore reçus par chacun, puis vérifie le micro coupé (silence réel), le chat, la main levée,
+  le partage d'écran, le retour d'un participant après une coupure et « Terminer pour tous ».
+- **Scénario 2** (`e2e2.js`) : invité sur téléphone entendu, tentatives d'intrusion bloquées par les règles,
+  salle d'attente, verrouillage, expulsion, co-organisateur, accueil, contacts, appel direct, discussion.
+
+Le mode développement (`?emulators`, actif seulement sur `localhost`) branche l'application sur ces
+émulateurs ; il est sans effet sur le site en ligne.
+
 ## Limites connues
 
 - **Sécurité** : la clé Gemini est visible dans le code source. Il faut la faire passer par un serveur

@@ -39,3 +39,12 @@ const TURN_CONFIG = {
   // ou bien des serveurs fixes : [{ urls: "turn:...", username: "...", credential: "..." }]
   servers: [],
 };
+
+/* ==========================================================
+   MODE DÉVELOPPEMENT (tests automatiques)
+   Sur localhost uniquement, avec ?emulators dans l'adresse : l'application
+   utilise les émulateurs Firebase et un serveur PeerJS locaux, sans toucher
+   aux vraies données. Sans effet sur le site en ligne.
+   ========================================================== */
+const DEV_EMULATORS = ["localhost", "127.0.0.1"].includes(location.hostname) &&
+  new URLSearchParams(location.search).has("emulators");

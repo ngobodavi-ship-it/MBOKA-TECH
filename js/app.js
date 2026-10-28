@@ -18,6 +18,11 @@ try {
     firebase.initializeApp(FIREBASE_CONFIG);
     auth = firebase.auth();
     db = firebase.firestore();
+    if (DEV_EMULATORS) {
+      auth.useEmulator("http://localhost:9099", { disableWarnings: true });
+      db.useEmulator("localhost", 8080);
+      console.log("🧪 Mode développement : émulateurs Firebase locaux");
+    }
     try { storage = firebase.storage(); } catch (e) { console.warn("Storage indisponible :", e.message); }
     firebaseReady = true;
     console.log("✅ Firebase initialisé : " + FIREBASE_CONFIG.projectId);
@@ -76,6 +81,17 @@ function showPage(id) {
   document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
   $(`#${id}`).classList.add("active");
 }
+/* Ferme une fenêtre de façon fiable : Bootstrap ignore hide() pendant l'animation
+   d'ouverture, ce qui laissait la fenêtre affichée si l'action était très rapide */
+function hideModalSafe(selector) {
+  const el = document.querySelector(selector);
+  if (!el) return;
+  const m = bootstrap.Modal.getInstance(el);
+  if (!m) return;
+  if (m._isTransitioning) el.addEventListener("shown.bs.modal", () => m.hide(), { once: true });
+  else m.hide();
+}
+
 function showToast(msg, type = "dark") {
   const toastEl = $("#app-toast");
   toastEl.className = `toast align-items-center text-bg-${type} border-0`;
@@ -193,7 +209,7 @@ $("#guest-form").addEventListener("submit", async (e) => {
     state.authInProgress = false;
 
     // Fermer le modal
-    bootstrap.Modal.getInstance($("#guestModal")).hide();
+    hideModalSafe("#guestModal");
 
     // Mettre à jour l'UI utilisateur
     $("#user-name-display").textContent = name;
@@ -247,7 +263,8 @@ function startAuth() {
       state.user = {
         uid: user.uid,
         email: user.email || $("#guest-email")?.value || "",
-        name: user.displayName || user.email?.split("@")[0] || "Invité",
+        // À l'inscription, Firebase prévient avant que le nom soit enregistré : on prend celui du formulaire
+        name: user.displayName || state.pendingDisplayName || user.email?.split("@")[0] || "Invité",
         isGuest: !!user.isAnonymous,
       };
       enterApp();
@@ -294,13 +311,23 @@ $("#register-form").addEventListener("submit", async (e) => {
   }
 
   try {
+    state.pendingDisplayName = name;
     const cred = await auth.createUserWithEmailAndPassword(email, pwd);
     await cred.user.updateProfile({ displayName: name });
     await db.collection("users").doc(cred.user.uid).set({
-      uid: cred.user.uid, name, email,
+      uid: cred.user.uid, name, email, isGuest: false,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-    });
+    }, { merge: true });
+    // Rattraper l'affichage si l'accueil s'est ouvert avant l'enregistrement du nom
+    if (state.user && state.user.uid === cred.user.uid && state.user.name !== name) {
+      state.user.name = name;
+      $("#user-name-display").textContent = name;
+      $("#user-avatar").textContent = initials(name);
+      $("#welcome-name").textContent = name.split(" ")[0];
+      Presence.write();
+    }
   } catch (err) { showAuthError(humanizeAuthError(err)); }
+  finally { state.pendingDisplayName = null; }
 });
 
 $("#logout-btn").addEventListener("click", async () => {
@@ -315,7 +342,7 @@ $("#logout-btn").addEventListener("click", async () => {
    2. ENTRÉE DANS L'APP
    ========================================================== */
 function enterApp() {
-  bootstrap.Modal.getInstance($("#guestModal"))?.hide();
+  hideModalSafe("#guestModal");
   $("#user-name-display").textContent = state.user.name;
   $("#user-email-display").textContent = state.user.email;
   $("#user-avatar").textContent = initials(state.user.name);
@@ -504,7 +531,9 @@ async function downloadMeetingReport(meetingId, format) {
 
   try {
     // 1. Récupérer le compte rendu le plus récent pour cette réunion
+    // Les règles n'autorisent que ses propres comptes rendus : la requête doit le préciser
     const reportsSnap = await db.collection("reports")
+      .where("ownerId", "==", state.user.uid)
       .where("meetingId", "==", meetingId)
       .get();
 
@@ -873,8 +902,9 @@ async function initPeer(meetingId) {
   const iceServers = await getIceServers();
   if (state.currentMeetingId !== meetingId) return; // réunion quittée entre-temps
   state.peer = new Peer(undefined, {
-    debug: 1,
-    config: { iceServers },
+    debug: 0, // nos propres journaux suffisent ; évite des erreurs rouges pour des cas normaux
+    config: { iceServers: DEV_EMULATORS ? [] : iceServers },
+    ...(DEV_EMULATORS ? { host: "localhost", port: 9000, path: "/myapp", secure: false } : {}),
   });
 
   state.peer.on("disconnected", () => {
@@ -951,8 +981,33 @@ async function initPeer(meetingId) {
   });
 
   state.peer.on("error", (err) => {
-    console.error("[PeerJS]", err);
-    showToast("Erreur connexion vidéo : " + err.type, "warning");
+    if (err.type === "peer-unavailable") {
+      // Participant parti sans prévenir (onglet fermé, batterie, réseau) : on nettoie sans alarmer
+      const pid = (String(err.message).match(/peer ([\w-]+)/) || [])[1];
+      console.info("Participant injoignable (parti) :", pid);
+      if (pid) {
+        try { state.calls[pid]?.close(); } catch (_) {}
+        delete state.calls[pid];
+        removeRemoteVideo(pid);
+        removeRemoteScreenVideo(pid);
+        if (firebaseReady && state.currentMeetingId) {
+          db.collection("meetings").doc(state.currentMeetingId).collection("participants").doc(pid).delete().catch(() => {});
+        }
+      }
+      return;
+    }
+    console.warn("[PeerJS]", err.type, err.message);
+    if (["network", "disconnected", "server-error", "socket-error", "socket-closed"].includes(err.type)) {
+      showToast("Connexion au serveur vidéo perdue : reconnexion en cours…", "warning");
+      setTimeout(() => { try { if (state.peer && !state.peer.destroyed) state.peer.reconnect(); } catch (_) {} }, 2000);
+      return;
+    }
+    const msg = {
+      "browser-incompatible": "ce navigateur ne gère pas la vidéo (utilisez Chrome, Edge, Firefox ou Safari récent)",
+      "webrtc": "échec de la connexion vidéo",
+      "unavailable-id": "identifiant déjà utilisé, rechargez la page",
+    }[err.type] || err.type;
+    showToast("Connexion vidéo : " + msg, "warning");
   });
 }
 
