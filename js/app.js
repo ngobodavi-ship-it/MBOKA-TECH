@@ -1108,7 +1108,12 @@ function attachRemoteStream(video, stream) {
 /* Tuile de partage d'écran distante (séparée de la caméra) */
 function addRemoteScreenVideo(peerId, stream) {
   const tileId = `screen-tile-${peerId}`;
-  if (document.getElementById(tileId)) return;
+  const existing = document.getElementById(tileId);
+  if (existing) {
+    const v = existing.querySelector("video");
+    if (v && v.srcObject !== stream) attachRemoteStream(v, stream);
+    return;
+  }
   const grid = $("#videos-grid");
   const name = state.participantNames[peerId] || "Participant";
   const tile = document.createElement("div");
@@ -1139,7 +1144,17 @@ function removeRemoteScreenVideo(peerId) {
 }
 
 function addRemoteVideo(peerId, stream) {
-  if (document.getElementById(`tile-${peerId}`)) return;
+  const existing = document.getElementById(`tile-${peerId}`);
+  if (existing) {
+    // Appel relancé (réseau, nouvelle tentative) : brancher le NOUVEAU flux,
+    // sinon la vignette garde l'ancien flux muet et l'on n'entend plus la personne
+    const v = existing.querySelector("video");
+    if (v && v.srcObject !== stream) {
+      attachRemoteStream(v, stream);
+      onRemoteStreamAdded(peerId, stream, existing);
+    }
+    return;
+  }
   const grid = $("#videos-grid");
   const name = state.participantNames[peerId] || "Participant";
   const tile = document.createElement("div");
