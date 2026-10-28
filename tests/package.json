@@ -1,0 +1,21 @@
+{
+  "name": "mbokatech-tests",
+  "private": true,
+  "description": "Tests de bout en bout de MbokaTech : vrais appels entre navigateurs, sur émulateurs Firebase et serveur PeerJS locaux",
+  "scripts": {
+    "test": "bash run.sh"
+  },
+  "devDependencies": {
+    "playwright": "1.56.1",
+    "firebase-tools": "^13.0.0",
+    "firebase": "10.12.2",
+    "peerjs": "1.5.4",
+    "bootstrap": "5.3.3",
+    "bootstrap-icons": "1.11.3",
+    "file-saver": "2.0.5",
+    "jspdf": "2.5.1",
+    "jspdf-autotable": "3.8.2",
+    "docx": "8.5.0",
+    "@mediapipe/selfie_segmentation": "0.1.1675465747"
+  }
+}

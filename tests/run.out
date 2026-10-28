@@ -1,0 +1,65 @@
+✅ Inscription de l'organisateur (Firebase Auth)
+✅ Réunion créée et connexion vidéo ouverte — 7gR7wLYImlWBuEowDzyd
+✅ Invité 1 entre par le lien d'invitation
+✅ Organisateur reçoit la vidéo de l'invité
+✅ Invité reçoit la vidéo de l'organisateur
+  organisateur reçoit : {"Grace Invitée":{"videoFrames":50,"videoWidth":640,"audioTrack":true,"audioEnabled":true,"audioPeak":1.017,"paused":false,"muted":false}}
+  invité reçoit       : {"Davi Organisateur":{"videoFrames":50,"videoWidth":480,"audioTrack":true,"audioEnabled":true,"audioPeak":0.758,"paused":false,"muted":false}}
+✅ SON : l'organisateur entend l'invité
+✅ SON : l'invité entend l'organisateur
+✅ IMAGE : flux vidéo actif dans les deux sens
+✅ Micro coupé de l'invité visible chez l'organisateur
+✅ Micro coupé = silence réel — [0]
+✅ Chat : message de l'invité reçu par l'organisateur
+✅ Main levée de l'invité visible chez l'organisateur
+✅ À trois : chacun reçoit les 2 autres vidéos
+  organisateur reçoit : {"Grace Invitée":{"videoFrames":50,"videoWidth":960,"audioTrack":true,"audioEnabled":true,"audioPeak":1.048,"paused":false,"muted":false},"Patrick Invité":{"videoFrames":50,"videoWidth":480,"audioTrack":true,"audioEnabled":true,"audioPeak":1.06,"paused":false,"muted":false}}
+  invité 1 reçoit : {"Davi Organisateur":{"videoFrames":50,"videoWidth":640,"audioTrack":true,"audioEnabled":true,"audioPeak":1.071,"paused":false,"muted":false},"Patrick Invité":{"videoFrames":50,"videoWidth":640,"audioTrack":true,"audioEnabled":true,"audioPeak":1.025,"paused":false,"muted":false}}
+  invité 2 reçoit : {"Davi Organisateur":{"videoFrames":50,"videoWidth":480,"audioTrack":true,"audioEnabled":true,"audioPeak":1.018,"paused":false,"muted":false},"Grace Invitée":{"videoFrames":51,"videoWidth":480,"audioTrack":true,"audioEnabled":true,"audioPeak":1.083,"paused":false,"muted":false}}
+✅ À trois : tout le monde entend tout le monde
+✅ Partage d'écran reçu par l'invité
+  organisateur reçoit après retour : {"Grace Invitée":{"videoFrames":39,"videoWidth":1280,"audioTrack":true,"audioEnabled":true,"audioPeak":1.055,"paused":false,"muted":false},"Patrick Invité":{"videoFrames":49,"videoWidth":640,"audioTrack":true,"audioEnabled":true,"audioPeak":1.067,"paused":false,"muted":false}}
+✅ Retour d'un participant : vidéo et son rétablis — 2 flux
+✅ Terminer pour tous : l'invité est renvoyé à l'accueil
+✅ Aucune erreur JS ni refus des règles (organisateur)
+✅ Aucune erreur JS ni refus des règles (invité 1)
+✅ Aucune erreur JS ni refus des règles (invité 2)
+✅ Aucune erreur JS ni refus des règles (invité 2 (retour))
+
+21/21 vérifications réussies
+✅ Mobile : la reconnaissance vocale ne prend pas le micro
+✅ Mobile : l'organisateur entend l'invité sur téléphone — [1.088]
+  intrusion : {"lister toutes les réunions":"permission-denied","lire l'annuaire des comptes":"permission-denied","lire les comptes rendus":"permission-denied","devenir propriétaire":"permission-denied","verrouiller la réunion à la place de l'organisateur":"permission-denied","se nommer co-organisateur":"permission-denied","terminer la réunion":"permission-denied","lire la réunion par son lien (normal)":"AUTORISÉ","partager son écran (normal)":"AUTORISÉ"}
+✅ Sécurité : un invité ne peut pas lister toutes les réunions — permission-denied
+✅ Sécurité : un invité ne peut pas lire l'annuaire des comptes — permission-denied
+✅ Sécurité : un invité ne peut pas lire les comptes rendus — permission-denied
+✅ Sécurité : un invité ne peut pas devenir propriétaire — permission-denied
+✅ Sécurité : un invité ne peut pas verrouiller la réunion à la place de l'organisateur — permission-denied
+✅ Sécurité : un invité ne peut pas se nommer co-organisateur — permission-denied
+✅ Sécurité : un invité ne peut pas terminer la réunion — permission-denied
+✅ Sécurité : un invité peut ouvrir la réunion de son lien
+✅ Sécurité : un invité peut partager son écran
+✅ Salle d'attente : l'invité patiente
+✅ Salle d'attente : l'organisateur voit la demande
+✅ Salle d'attente : l'invité admis entre dans la réunion
+✅ Verrouillage : un nouveau venu ne peut pas entrer
+✅ Expulsion : le participant est sorti — ok
+✅ Co-organisateur : droits donnés en direct
+✅ Co-organisateur : peut modifier les réglages (règles) — true
+✅ Fin : récapitulatif affiché à l'organisateur
+✅ Accueil : la réunion apparaît dans « Mes réunions »
+✅ Accueil du collègue : la réunion rejointe apparaît
+✅ Contacts : le collègue voit l'organisateur
+✅ Appel direct : ça sonne chez l'organisateur
+✅ Appel direct : accepté, les deux rejoignent l'appel
+✅ Appel direct : vidéo et son
+✅ Discussion : le message arrive chez l'organisateur
+✅ Discussion : badge de message non lu — 1
+✅ Aucune erreur JS (organisateur)
+✅ Aucune erreur JS (invité mobile)
+✅ Aucune erreur JS (invité en attente)
+✅ Aucune erreur JS (intrus)
+✅ Aucune erreur JS (collègue)
+
+32/32 vérifications réussies
+exit=0

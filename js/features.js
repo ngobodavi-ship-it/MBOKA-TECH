@@ -778,6 +778,10 @@ function openBgModal() {
 /* ---------- 6. Écran de préparation ---------- */
 async function joinMeeting(meetingId, title) {
   if (state.currentMeetingId) leaveMeeting({ stayOnPage: true });
+  // Aucune fenêtre restée ouverte (récapitulatif, compte rendu, invité…) ne doit masquer l'écran de préparation
+  document.querySelectorAll(".modal.show, .modal").forEach((m) => {
+    if (m.id && m.id !== "waitingRoomModal" && bootstrap.Modal.getInstance(m)) hideModalSafe("#" + m.id);
+  });
   state.pendingRoom = { meetingId, title };
   $("#prejoin-title").textContent = title || "Réunion";
   $("#prejoin-avatar").textContent = initials(state.user?.name || "");
@@ -972,7 +976,7 @@ function onMeetingEntered(meetingId) {
   }
 
   // Relancer une réunion terminée quand l'organisateur revient
-  if (state.isOrganizer) rt.updateMeeting(meetingId, { endedAt: rt.del() }).catch(() => {});
+  if (state.isOrganizer) rt.updateMeeting(meetingId, { endedAt: rt.del(), endedBy: rt.del() }).catch(() => {});
   applyMeetingPolicies();
   Assistant.onEntered(meetingId);
   Presence.setInMeeting(true);
@@ -1027,7 +1031,9 @@ function applyMeetingDoc(data) {
   renderParticipantsList();
 
   // Fin de réunion décidée par l'organisateur
-  if (data.endedAt && !state.isOrganizer && state.currentMeetingId) {
+  // Tout le monde sort, co-organisateurs compris, sauf la personne qui a terminé la réunion
+  const endedByMe = data.endedBy ? data.endedBy === state.user.uid : state.meetingOwnerId === state.user.uid;
+  if (data.endedAt && !endedByMe && state.currentMeetingId && !state.finishing) {
     showToast("La réunion a été terminée par l'organisateur", "warning");
     setTimeout(() => leaveMeeting(), 300);
     return;
@@ -2202,6 +2208,7 @@ async function endMeetingForAll() {
   try {
     await rt.updateMeeting(state.currentMeetingId, {
       endedAt: rt.now(),
+      endedBy: state.user.uid,
       transcriptionActive: false,
       presenterId: rt.del(),
       spotlightPeerId: rt.del(),

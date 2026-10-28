@@ -1,0 +1,5 @@
+node_modules/
+peer/
+shots/
+*.log
+firestore.rules

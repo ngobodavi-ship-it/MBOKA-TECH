@@ -104,7 +104,9 @@ const Contacts = {
   list: [], unsub: null,
   load() {
     this.unsub?.();
-    if (!firebaseReady) { this.render(); return; }
+    this.unsub = null;
+    // L'annuaire est réservé aux comptes : les invités (anonymes) n'y ont pas accès
+    if (!firebaseReady || !state.user || state.user.isGuest) { this.render(); return; }
     this.unsub = db.collection("users").limit(500).onSnapshot((snap) => {
       const me = state.user?.uid;
       const order = { available: 0, meeting: 1, busy: 2, dnd: 3, away: 4, offline: 5 };
