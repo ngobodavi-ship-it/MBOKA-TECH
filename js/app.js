@@ -1818,6 +1818,7 @@ async function generateReport() {
     // Priorité : Gemini > OpenAI > Local
     let report;
     let aiUsed = "résumé local";
+    let aiFailure = null;
     try {
       if (GEMINI_CONFIG.apiKey) {
         statusEl.textContent = "🤖 Gemini analyse la conversation...";
@@ -1831,9 +1832,10 @@ async function generateReport() {
         report = smartLocalReport(transcript);
       }
     } catch (aiErr) {
-      console.warn("Échec IA, fallback local :", aiErr);
+      console.warn("Échec IA, résumé local :", aiErr);
       report = smartLocalReport(transcript);
       aiUsed = "résumé local (IA indisponible)";
+      aiFailure = aiErr.message;
     }
 
     displayReport(report);
@@ -1855,8 +1857,13 @@ async function generateReport() {
       await db.collection("meetings").doc(state.currentMeetingId).update({ hasReport: true });
     }
 
-    statusEl.className = "alert alert-success small mb-3";
-    statusEl.innerHTML = `✅ Compte rendu généré par <strong>${aiUsed}</strong><br><small class="text-muted">Source : ${source}</small>`;
+    if (aiFailure) {
+      statusEl.className = "alert alert-warning small mb-3";
+      statusEl.innerHTML = `⚠️ L'IA n'a pas pu répondre (${escapeHtml(aiFailure)}).<br>Un <strong>résumé simplifié</strong> a été produit à la place.<br><small class="text-muted">Source : ${source}</small>`;
+    } else {
+      statusEl.className = "alert alert-success small mb-3";
+      statusEl.innerHTML = `✅ Compte rendu généré par <strong>${aiUsed}</strong><br><small class="text-muted">Source : ${source}</small>`;
+    }
     return report;
   } catch (err) {
     console.error(err);
@@ -1921,6 +1928,47 @@ ${transcript.slice(0, 12000)}
 /* ==========================================================
    GEMINI — Génération du compte rendu de qualité humaine
    ========================================================== */
+/* Appel Gemini commun : essaie les modèles dans l'ordre et traduit les erreurs en clair */
+const AI = { down: null, warned: false };
+function geminiErrorMessage(status, body) {
+  const b = String(body || "");
+  if (/SUSPENDED|has been suspended/i.test(b)) return "la clé Gemini est suspendue par Google : créez-en une nouvelle sur aistudio.google.com";
+  if (/API_KEY_INVALID|API key not valid|expired/i.test(b)) return "la clé Gemini est invalide ou expirée";
+  if (/referer|REFERRER|blocked/i.test(b) || status === 403) return "la clé Gemini refuse ce site (restrictions de la clé à vérifier)";
+  if (status === 429) return "quota Gemini dépassé, réessayez dans une minute";
+  if (status >= 500) return "le service Gemini est momentanément indisponible";
+  return `erreur Gemini ${status}`;
+}
+async function geminiRequest(body) {
+  if (!GEMINI_CONFIG.apiKey) throw new Error("aucune clé Gemini configurée");
+  const models = [GEMINI_CONFIG.model, ...(GEMINI_CONFIG.fallbackModels || [])].filter((m, i, a) => m && a.indexOf(m) === i);
+  let lastErr;
+  for (const model of models) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_CONFIG.apiKey}`;
+    let res;
+    try {
+      res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    } catch (_) {
+      throw new Error("pas de connexion au service Gemini");
+    }
+    if (res.ok) {
+      AI.down = null;
+      const data = await res.json();
+      return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    }
+    const text = await res.text().catch(() => "");
+    lastErr = new Error(geminiErrorMessage(res.status, text));
+    lastErr.status = res.status;
+    // Modèle retiré ou inconnu : on passe au suivant ; sinon (clé, quota) inutile d'insister
+    if (res.status !== 404 && !(res.status === 400 && /model/i.test(text))) break;
+  }
+  if (lastErr && [400, 401, 403].includes(lastErr.status)) {
+    AI.down = lastErr.message;
+    if (!AI.warned) { AI.warned = true; try { showToast("IA indisponible : " + lastErr.message, "warning"); } catch (_) {} }
+  }
+  throw lastErr;
+}
+
 async function summarizeWithGemini(transcript) {
   const prompt = `Tu es un assistant professionnel expert en rédaction de comptes rendus de réunion d'entreprise.
 
@@ -1950,29 +1998,10 @@ TRANSCRIPTION :
 ${transcript.slice(0, 20000)}
 """`;
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CONFIG.model}:generateContent?key=${GEMINI_CONFIG.apiKey}`;
-
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{
-        parts: [{ text: prompt }]
-      }],
-      generationConfig: {
-        temperature: 0.4,
-        responseMimeType: "application/json"
-      }
-    })
-  });
-
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error("Gemini : " + errText);
-  }
-
-  const data = await res.json();
-  const txt = data.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+  const txt = (await geminiRequest({
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: { temperature: 0.4, responseMimeType: "application/json" },
+  })) || "{}";
 
   try {
     const parsed = JSON.parse(txt);

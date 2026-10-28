@@ -24,7 +24,9 @@ const OPENAI_CONFIG = {
    ========================================================== */
 const GEMINI_CONFIG = {
   apiKey: "AIzaSyAqRt6TU5bOHySmMZPevsPKUQdNsVbQQl4",
-  model: "gemini-2.0-flash"            // rapide et gratuit (60 req/min)
+  // Alias tenu à jour par Google ; si un modèle disparaît, on essaie les suivants
+  model: "gemini-flash-latest",
+  fallbackModels: ["gemini-2.5-flash", "gemini-2.0-flash"],
 };
 
 /* ==========================================================
