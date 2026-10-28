@@ -980,6 +980,7 @@ function onMeetingEntered(meetingId) {
   applyMeetingPolicies();
   Assistant.onEntered(meetingId);
   Presence.setInMeeting(true);
+  UI.onMeetingEntered();
 }
 
 function runMeetingCleanups(opts = {}) {
@@ -1163,6 +1164,7 @@ const Layout = {
       // La tuile principale passe en premier (via l'ordre CSS : déplacer la vidéo la mettrait en pause)
       t.style.order = t.id === main ? "-1" : "";
     });
+    if (typeof UI !== "undefined") UI.afterLayout(grid);
   },
   reset() {
     this.pinned = null;

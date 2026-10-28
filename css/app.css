@@ -790,3 +790,70 @@ html, body {
   .chat-layout.show-conv .chat-sidebar { display: none; }
   .chat-layout.show-conv .chat-main { display: flex; }
 }
+
+/* === Interface de réunion façon Zoom / Teams / Meet === */
+.ctrl-sep { width: 1px; height: 36px; background: #4a4a4a; margin: 0 0.3rem; align-self: center; }
+.sheet-handle { display: none; }
+@media (min-width: 769px) {
+  .meeting-controls { gap: 0.3rem; padding: 0.5rem 1rem; align-items: center; }
+  .meeting-controls .ctrl-btn {
+    width: auto; min-width: 66px; height: 58px; border-radius: 12px; padding: 0 0.55rem;
+    flex-direction: column; gap: 4px; font-size: 1.15rem;
+  }
+  .ctrl-label { font-size: 0.66rem; font-weight: 600; line-height: 1; color: #cfcfcf; white-space: nowrap; }
+  .ctrl-btn.off .ctrl-label, .ctrl-btn.active .ctrl-label, .ctrl-btn.recording .ctrl-label,
+  .ctrl-btn.ctrl-leave .ctrl-label { color: #fff; }
+  #leave-meeting-btn { min-width: 84px; }
+  .mobile-only { display: none !important; }
+}
+@media (max-width: 768px) {
+  .ctrl-label, .ctrl-sep { display: none; }
+  .ctrl-secondary { display: none !important; }
+  .meeting-controls { flex-wrap: nowrap; justify-content: space-around; gap: 0.25rem; padding: 0.55rem 0.4rem; }
+  .meeting-controls .ctrl-btn { width: 46px; height: 46px; flex-shrink: 0; }
+  /* Le panneau devient un tiroir par-dessus la vidéo */
+  .meeting-body { flex-direction: row; }
+  .side-panel {
+    position: fixed; left: 0; right: 0; bottom: 0; width: 100%; height: 78vh; z-index: 1045;
+    border-radius: 18px 18px 0 0; border: none; box-shadow: 0 -12px 40px rgba(0,0,0,0.45);
+    animation: sheetUp 0.22s ease-out;
+  }
+  @keyframes sheetUp { from { transform: translateY(40px); opacity: 0.6; } to { transform: none; opacity: 1; } }
+  .sheet-handle {
+    display: flex; justify-content: center; align-items: center; height: 22px;
+    border: none; background: transparent; flex-shrink: 0;
+  }
+  .sheet-handle span { width: 44px; height: 5px; border-radius: 3px; background: #c4c4c4; }
+  .videos-grid { grid-template-columns: 1fr; }
+  .meeting-header { padding: 0.5rem 0.75rem; }
+  .meeting-header .text-muted.small { display: none; }
+  /* À deux : l'autre en grand, soi-même en vignette (comme Meet) */
+  .videos-grid.duo { position: relative; display: block; padding: 0.5rem; }
+  .videos-grid.duo .video-tile.remote { width: 100%; height: 100%; aspect-ratio: auto; }
+  .videos-grid.duo #local-tile {
+    position: absolute; right: 14px; bottom: 14px; width: 32%; max-width: 150px;
+    aspect-ratio: 3 / 4; z-index: 6; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+  }
+  .videos-grid.duo #local-tile .video-label { font-size: 0.65rem; padding: 0.2rem 0.4rem; }
+  .videos-grid.duo #local-tile .tile-avatar span { width: 48px; height: 48px; font-size: 1.1rem; }
+  /* Accueil : onglets sur une ligne, défilables */
+  #home-page .card-header .nav-pills { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; width: 100%; }
+  #home-page .card-header .nav-pills .nav-link { white-space: nowrap; padding: 0.4rem 0.7rem; }
+  #home-search { max-width: none !important; width: 100%; }
+}
+
+/* Mosaïque adaptative : les vignettes grandissent pour remplir l'espace */
+.videos-grid.gallery {
+  grid-template-columns: repeat(var(--cols, 1), minmax(0, var(--tile-w, 1fr)));
+  grid-template-rows: repeat(var(--rows, 1), auto);
+  justify-content: center; align-content: center; gap: 12px; padding: 12px;
+}
+.videos-grid.gallery .video-tile { width: 100%; aspect-ratio: 16 / 9; }
+@media (max-width: 768px) {
+  .videos-grid.gallery { grid-template-columns: repeat(var(--cols, 1), minmax(0, 1fr)); }
+  /* Notifications au-dessus de la barre de commandes, sans masquer l'en-tête */
+  .toast-container { top: auto !important; bottom: 76px; left: 50%; right: auto !important; transform: translateX(-50%); width: calc(100% - 24px); padding: 0 !important; }
+  .toast-container .toast { width: 100%; }
+  /* Ma vignette en haut à droite : elle ne cache plus le nom de l'autre */
+  .videos-grid.duo #local-tile { top: 14px; bottom: auto; }
+}
