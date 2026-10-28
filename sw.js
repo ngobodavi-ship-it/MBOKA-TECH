@@ -1,7 +1,7 @@
 /* MbokaTech — service worker : rend l'application installable et utilisable
    hors connexion pour l'interface. Stratégie « réseau d'abord » : les mises à
    jour sont prises immédiatement, le cache ne sert qu'en cas de coupure. */
-const CACHE = "mboka-v4";
+const CACHE = "mboka-v5";
 
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (e) => {

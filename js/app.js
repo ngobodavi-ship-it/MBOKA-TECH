@@ -2097,8 +2097,8 @@ function initSpeechRecognition() {
   };
 
   recognition.onend = () => {
-    // Auto-redémarrage si on est toujours en mode actif
-    if (state.isTranscribing) {
+    // Auto-redémarrage si on est toujours en mode actif (jamais sur mobile)
+    if (state.isTranscribing && !isMobileDevice()) {
       try { recognition.start(); } catch (_) {}
     }
   };
@@ -2188,7 +2188,20 @@ function watchTranscriptionMode(meetingId) {
 }
 
 /* === Démarrage automatique (silencieux total, pour les non-organisateurs) === */
+/* Sur téléphone et tablette, la reconnaissance vocale du navigateur prend le micro
+   pour elle seule : l'appel ne reçoit plus la voix et les autres ne vous entendent plus.
+   La transcription n'est donc lancée que sur ordinateur. */
+function isMobileDevice() {
+  if (navigator.userAgentData && typeof navigator.userAgentData.mobile === "boolean" && navigator.userAgentData.mobile) return true;
+  const ua = navigator.userAgent || "";
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+}
+
 async function autoStartTranscription() {
+  if (isMobileDevice()) {
+    console.info("Transcription ignorée sur mobile (elle couperait le micro de l'appel)");
+    return;
+  }
   if (!state.recognition) {
     state.recognition = initSpeechRecognition();
     if (!state.recognition) {
@@ -2230,8 +2243,12 @@ async function startTranscription() {
   try {
     state.isTranscribing = true;
 
-    // 1. Démarrer ma propre reconnaissance
-    state.recognition.start();
+    // 1. Démarrer ma propre reconnaissance (pas sur mobile : elle couperait mon micro pour les autres)
+    if (isMobileDevice()) {
+      showToast("Sur téléphone, votre voix n'est pas transcrite pour ne pas couper votre micro. Les participants sur ordinateur sont transcrits.", "info");
+    } else {
+      state.recognition.start();
+    }
 
     // 2. Activer le mode pour TOUS les autres participants via Firestore
     if (firebaseReady && state.currentMeetingId) {
