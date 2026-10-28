@@ -2337,19 +2337,11 @@ document.addEventListener("keyup", (e) => {
 
 /* ---------- 23. Assistant IA de réunion (Gemini) ---------- */
 async function callGemini(prompt, { json = false, temperature = 0.4 } = {}) {
-  if (!GEMINI_CONFIG.apiKey) throw new Error("aucune clé Gemini configurée");
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CONFIG.model}:generateContent?key=${GEMINI_CONFIG.apiKey}`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature, ...(json ? { responseMimeType: "application/json" } : {}) },
-    }),
+  if (AI.down) throw new Error(AI.down);
+  return geminiRequest({
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: { temperature, ...(json ? { responseMimeType: "application/json" } : {}) },
   });
-  if (!res.ok) throw new Error(`Gemini ${res.status}`);
-  const data = await res.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
 }
 
 async function gatherMeetingContext() {
